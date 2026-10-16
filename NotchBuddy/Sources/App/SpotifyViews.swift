@@ -105,90 +105,34 @@ struct SpotifyCardView: View {
 
     // MARK: Now playing
 
-    // The card is 98 pt tall: artwork row, progress row, controls row.
+    // Same shared player as Apple Music (NowPlayingPlayer.swift).
     private func nowPlaying(_ track: SpotifyTrack) -> some View {
-        let subtitle = [track.artist, track.album].filter { !$0.isEmpty }.joined(separator: " · ")
-        return VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: 9) {
-                NowPlayingArtwork(image: controller.artwork, accent: green)
-                    .frame(width: 36, height: 36)
-                    .onTapGesture { controller.openSpotify() }
-                    .help(track.album.isEmpty ? String(localized: "Open Spotify") : String(localized: "\(track.album) — open Spotify"))
-
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 5) {
-                        Circle().fill(green).frame(width: 6, height: 6)
-                        Text(track.isAd ? String(localized: "Advertisement") : track.title)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
-                            .lineLimit(1).truncationMode(.tail)
-                    }
-                    if !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                            .lineLimit(1).truncationMode(.tail)
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.trailing, 24)   // the ↗ button sits top-right
-            .padding(.top, 6)
-
-            // Position runs on its own clock only while playing and on screen
-            TimelineView(.animation(minimumInterval: 0.5, paused: !controller.isPlaying)) { context in
-                NowPlayingProgress(
-                    position: controller.position(at: context.date),
-                    duration: track.duration,
-                    accent: green,
-                    canSeek: !track.isAd && track.duration > 0,
-                    onSeek: { controller.seek(to: $0) }
-                )
-            }
-            .padding(.top, 7)
-
-            controls
-                .padding(.top, 4)
-        }
-        .padding(.leading, 108)
-        .padding(.trailing, 12)
-    }
-
-    private var controls: some View {
-        HStack(spacing: 0) {
-            HStack(spacing: 10) {
-                NowPlayingIconButton(icon: "shuffle", size: 10,
-                                  tint: controller.shuffling ? green : Color(hex: "#6B7079"),
-                                  help: controller.shuffling ? "Shuffle on" : "Shuffle off") {
-                    controller.setShuffling(!controller.shuffling)
-                }
-                NowPlayingIconButton(icon: "backward.fill", size: 11, tint: Color(hex: "#C5C8CD"), help: "Previous") {
-                    controller.previousTrack()
-                }
-                Button(action: { controller.playPause() }) {
-                    ZStack {
-                        Circle().fill(Color(hex: "#F5F6F8"))
-                        Image(systemName: controller.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .foregroundColor(Color(hex: "#0E0F11"))
-                            .offset(x: controller.isPlaying ? 0 : 1)
-                    }
-                    .frame(width: 20, height: 20)
-                }
-                .buttonStyle(NowPlayingPressStyle())
-                .help(controller.isPlaying ? String(localized: "Pause") : String(localized: "Play"))
-                NowPlayingIconButton(icon: "forward.fill", size: 11, tint: Color(hex: "#C5C8CD"), help: "Next") {
-                    controller.nextTrack()
-                }
-                NowPlayingIconButton(icon: "repeat", size: 10,
-                                  tint: controller.repeating ? green : Color(hex: "#6B7079"),
-                                  help: controller.repeating ? "Repeat on" : "Repeat off") {
-                    controller.setRepeating(!controller.repeating)
-                }
-            }
-            Spacer(minLength: 8)
-            NowPlayingVolume(volume: controller.volume, accent: green) { controller.setVolume($0) }
-        }
+        let c = controller
+        let info = NowPlayingInfo(
+            title: track.isAd ? String(localized: "Advertisement") : track.title,
+            subtitle: [track.artist, track.album].filter { !$0.isEmpty }.joined(separator: " · "),
+            artwork: controller.artwork,
+            isPlaying: controller.isPlaying,
+            duration: track.duration,
+            canSeek: !track.isAd && track.duration > 0,
+            shuffling: controller.shuffling,
+            repeating: controller.repeating,
+            volume: controller.volume,
+            brand: green
+        )
+        let actions = NowPlayingActions(
+            position: { c.position(at: $0) },
+            playPause: { c.playPause() },
+            previous: { c.previousTrack() },
+            next: { c.nextTrack() },
+            seek: { c.seek(to: $0) },
+            setShuffling: { c.setShuffling($0) },
+            setRepeating: { c.setRepeating($0) },
+            setVolume: { c.setVolume($0) },
+            openApp: { c.openSpotify() },
+            openHelp: track.album.isEmpty ? String(localized: "Open Spotify") : String(localized: "\(track.album) — open Spotify")
+        )
+        return NowPlayingPlayer(info: info, actions: actions)
     }
 
     // MARK: Idle / not installed / denied (same layout as the other idle cards)

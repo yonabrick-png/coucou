@@ -122,10 +122,18 @@ struct IslandContainer: View {
 
             Group {
                 if state.mode == .compact {
+                    #if !APPSTORE
+                    // Cover + bars while music plays, the mini grid otherwise
+                    CompactTrailing(state: state)
+                        .scaleEffect(IslandRestingLayout(width: islandWidth, height: islandHeight).miniGridScale)
+                        .position(x: islandWidth - 40, y: islandHeight / 2)
+                        .transition(.opacity)
+                    #else
                     CompactMiniGrid(state: state)
                         .scaleEffect(IslandRestingLayout(width: islandWidth, height: islandHeight).miniGridScale)
                         .position(x: islandWidth - 40, y: islandHeight / 2)
                         .transition(.opacity)
+                    #endif
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: state.mode == .compact)

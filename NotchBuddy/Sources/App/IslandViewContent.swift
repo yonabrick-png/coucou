@@ -4230,89 +4230,108 @@ struct MusicCardView: View {
     @ObservedObject private var controller = MusicController.shared
     @ObservedObject private var appState = AppState.shared
 
+    private let red = Color(hex: MusicController.red)
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        Group {
             if appState.musicAutomationDenied {
-                // Automation denied — prompt user to fix
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color(hex: "#F4505E"))
-                        .frame(width: 7, height: 7)
-                    Text("Apple Music")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "#F5F6F8"))
-                    Spacer(minLength: 2)
-                }
-                .padding(.top, 6)
-                .padding(.leading, 108)
-                .padding(.trailing, 36)
-
-                Text("Allow Coucou to control Music")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#8E939C"))
-                    .padding(.leading, 108)
-                    .padding(.trailing, 12)
-
-                Button("Open Settings…") { MusicController.shared.openAutomationSettings() }
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "#FA2D48").opacity(0.85))
-                    .buttonStyle(.plain)
-                    .padding(.leading, 108)
-                    .padding(.top, 2)
+                deniedView
+            } else if let title = controller.trackTitle {
+                NowPlayingPlayer(info: info(title: title), actions: actions)
             } else {
-                // Line 1: dot + title
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color(hex: "#FA2D48"))
-                        .frame(width: 7, height: 7)
-                    if let title = controller.trackTitle {
-                        Text(title)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color(hex: "#F5F6F8"))
-                            .lineLimit(1).truncationMode(.tail)
-                            .frame(maxWidth: 150, alignment: .leading)
-                    }
-                }
-                .padding(.top, 6)
-                .padding(.leading, 108)
-
-                // Line 2: artist
-                if let artist = controller.artist {
-                    Text(artist)
-                        .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "#8E939C"))
-                        .lineLimit(1).truncationMode(.tail)
-                        .frame(maxWidth: 150, alignment: .leading)
-                        .padding(.leading, 108)
-                }
-
-                // Line 3: controls
-                HStack(spacing: 8) {
-                    Button(action: { MusicController.shared.previousTrack() }) {
-                        Image(systemName: "backward.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                    }
-                    .buttonStyle(.plain)
-                    Button(action: { MusicController.shared.playPause() }) {
-                        Image(systemName: appState.musicPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#FA2D48"))
-                    }
-                    .buttonStyle(.plain)
-                    Button(action: { MusicController.shared.nextTrack() }) {
-                        Image(systemName: "forward.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#8E939C"))
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.leading, 108)
-                .padding(.top, 6)
+                idleView
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(.top, 4)
+        // Music doesn't announce seeks made in its own window: re-read when the card shows
+        .onAppear { controller.refresh() }
+    }
+
+    private func info(title: String) -> NowPlayingInfo {
+        NowPlayingInfo(
+            title: title,
+            subtitle: [controller.artist, controller.album].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "),
+            artwork: controller.artwork,
+            isPlaying: appState.musicPlaying,
+            duration: controller.duration,
+            canSeek: controller.duration > 0,
+            shuffling: controller.shuffling,
+            repeating: controller.repeating,
+            volume: controller.volume,
+            brand: red
+        )
+    }
+
+    private var actions: NowPlayingActions {
+        let c = controller
+        return NowPlayingActions(
+            position: { c.position(at: $0) },
+            playPause: { c.playPause() },
+            previous: { c.previousTrack() },
+            next: { c.nextTrack() },
+            seek: { c.seek(to: $0) },
+            setShuffling: { c.setShuffling($0) },
+            setRepeating: { c.setRepeating($0) },
+            setVolume: { c.setVolume($0) },
+            openApp: { c.openMusic() },
+            openHelp: controller.album.map { String(localized: "\($0) — open Music") } ?? String(localized: "Open Music")
+        )
+    }
+
+    // MARK: Idle / denied (same layout as the other idle cards)
+
+    private var idleView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            header(dot: red)
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(Color(hex: "#22C55E"))
+                    .frame(width: 5, height: 5)
+                Text("Not playing")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#6B7079"))
+            }
+            .padding(.leading, 108)
+            .padding(.top, 2)
+
+            Button("Open Music") { controller.openMusic() }
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(red.opacity(0.85))
+                .buttonStyle(.plain)
+                .padding(.leading, 108)
+                .padding(.top, 2)
+        }
+    }
+
+    private var deniedView: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            header(dot: Color(hex: "#F4505E"))
+            Text("Allow Coucou to control Music")
+                .font(.system(size: 11))
+                .foregroundColor(Color(hex: "#8E939C"))
+                .padding(.leading, 108)
+                .padding(.trailing, 12)
+            Button("Open Settings…") { controller.openAutomationSettings() }
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(red.opacity(0.85))
+                .buttonStyle(.plain)
+                .padding(.leading, 108)
+                .padding(.top, 2)
+        }
+    }
+
+    private func header(dot: Color) -> some View {
+        HStack(spacing: 6) {
+            Circle().fill(dot).frame(width: 7, height: 7)
+            Text("Apple Music")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(hex: "#F5F6F8"))
+            Spacer(minLength: 2)
+        }
+        .padding(.top, 6)
+        .padding(.leading, 108)
+        .padding(.trailing, 36)
     }
 }
 #endif
