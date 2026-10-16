@@ -488,6 +488,14 @@ final class HookServer: @unchecked Sendable {
         if !isExternalAgent { TurnRecorder.shared.record(event: name, payload: payload, pillId: agentId) }
         #endif
 
+        #if !APPSTORE
+        // Where each Claude Code session lives (folder, terminal tab), for the notch prompt box.
+        if agentId == "integration_claude" {
+            ClaudeSessions.shared.record(event: name, payload: payload,
+                                         hostApp: hostApp, projectName: projectName)
+        }
+        #endif
+
         // Waiting permission requests: an event that settles one (its tool finished, or its
         // turn ended) takes it off the card, then is processed normally.
         if !approvals.isEmpty {
@@ -3241,6 +3249,26 @@ def normalize_tool_fields(payload):
     if not payload.get('cwd') and payload.get('workdir'):
         payload['cwd'] = payload['workdir']
 
+def session_tty():
+    # The terminal tab the agent runs in (its controlling tty), so Coucou can type a prompt
+    # into that exact tab. Walks up from this relay (itself first) until a process has a tty.
+    try:
+        import subprocess
+        pid = os.getpid()
+        for _ in range(6):
+            out = subprocess.run(['/bin/ps', '-o', 'tty=,ppid=', '-p', str(pid)],
+                                 capture_output=True, text=True, timeout=1).stdout.split()
+            if len(out) < 2:
+                return ''
+            if out[0] not in ('??', '-'):
+                return '/dev/' + out[0]
+            pid = int(out[1])
+            if pid <= 1:
+                return ''
+    except Exception:
+        pass
+    return ''
+
 def main():
     raw = b''
     payload = {}
@@ -3386,6 +3414,9 @@ def main():
         pass
 
     event = payload.get('hook_event_name', '')
+    # Only when a session starts or takes a prompt: one ps call, never on the busy events.
+    if event in ('SessionStart', 'UserPromptSubmit') and not payload.get('tty'):
+        payload['tty'] = session_tty()
     # socket_path is already defined above
 
     if event == 'PermissionRequest':

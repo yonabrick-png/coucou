@@ -286,6 +286,8 @@ final class AppState: ObservableObject {
 
     // Context for prompt (window attach / file)
     @Published var promptContext: PromptContext? = nil
+    /// The Claude prompt box is open on the overview card: keeps the island open and key.
+    @Published var composingClaudePrompt = false
 
     // Dropped file (set during upload flow)
     @Published var droppedFile: DroppedFile? = nil

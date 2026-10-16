@@ -148,9 +148,19 @@ struct OverviewView: View {
                         .transition(.opacity)
                 }
 
+                // Claude prompt box — covers the card while typing a prompt for a session
+                #if !APPSTORE
+                if state.composingClaudePrompt && agent?.id == "integration_claude" {
+                    CardBackground(wash: nil)
+                    ClaudePromptBox(state: state)
+                        .transition(.opacity)
+                }
+                #endif
+
                 // ↗ jump button — last in ZStack so it renders on top; hidden while any detail is open
                 #if !APPSTORE
                 let hideJumpButton = showingN8nDetail || state.showingPlanDetail || activeDiffId != nil
+                    || state.composingClaudePrompt
                 #else
                 let hideJumpButton = showingN8nDetail || activeDiffId != nil
                 #endif
@@ -167,6 +177,16 @@ struct OverviewView: View {
                     .padding(.top, 8)
                     .padding(.trailing, 10)
                     .frame(maxWidth: .infinity, alignment: .trailing)
+
+                    // ✎ message Claude — next to ↗ on the Claude pill
+                    #if !APPSTORE
+                    if agent?.id == "integration_claude" {
+                        ClaudePromptButton(state: state)
+                            .padding(.top, 8)
+                            .padding(.trailing, 30)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    #endif
                 }
             }
             .frame(width: 322)
@@ -179,6 +199,7 @@ struct OverviewView: View {
         .onChange(of: state.focusId) { _, new in
             showingN8nDetail = false
             activeDiffId = nil
+            state.composingClaudePrompt = false
             #if !APPSTORE
             withAnimation(.easeIn(duration: 0.16)) { state.showingPlanDetail = false }
             #endif
@@ -193,6 +214,7 @@ struct OverviewView: View {
             #if !APPSTORE
             if m != .expanded { state.showingPlanDetail = false; activeDiffId = nil }
             #endif
+            if m != .expanded { state.composingClaudePrompt = false }
             if m == .expanded && state.focusId == "integration_github" {
                 GithubPoller.shared.refreshIfStale()
             }

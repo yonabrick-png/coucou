@@ -17,6 +17,7 @@ final class IslandWindowController: NSWindowController {
     private var viewSubscription: AnyCancellable?
     private var displaySubscription: AnyCancellable?
     private var autoCloseSubscription: AnyCancellable?
+    private var composeSubscription: AnyCancellable?
     private var openOnHoverSubscription: AnyCancellable?
 
     // Confused recovery timer (set by handleDizzy)
@@ -198,6 +199,13 @@ final class IslandWindowController: NSWindowController {
                 }
             }
 
+        // The Claude prompt box types into a TextField too: same key-window rule
+        composeSubscription = state.$composingClaudePrompt
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] composing in
+                if composing { self?.islandPanel.makeKey() }
+            }
+
         // Screen choice changed in Settings: move right away (explicit user action).
         displaySubscription = state.$islandDisplay
             .dropFirst()
@@ -325,7 +333,10 @@ final class IslandWindowController: NSWindowController {
         }
 
         // An approval, or an email prepared by voice, stays open until I click.
-        fsm.isHeldOpen = { AppState.shared.pendingApproval != nil || AppState.shared.voiceMailDraft != nil }
+        fsm.isHeldOpen = {
+            AppState.shared.pendingApproval != nil || AppState.shared.voiceMailDraft != nil
+                || AppState.shared.composingClaudePrompt
+        }
 
         // Voice: wake phrase detected → open listening island
         #if !APPSTORE
