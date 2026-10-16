@@ -182,8 +182,8 @@ struct OverviewView: View {
                     #if !APPSTORE
                     if agent?.id == "integration_claude" {
                         ClaudePromptButton(state: state)
-                            .padding(.top, 8)
-                            .padding(.trailing, 30)
+                            .padding(.top, 7)
+                            .padding(.trailing, 31)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     #endif

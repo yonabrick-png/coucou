@@ -8,9 +8,12 @@ import SwiftUI
 // background on the same conversation. With no session (or "New session" picked), it starts
 // `claude "<prompt>"` in a new Terminal window (see ClaudePromptSender).
 
-/// The ✎ button next to ↗ on the Claude pill's card.
+/// The "Ask Claude" button next to ↗ on the Claude pill's card.
 struct ClaudePromptButton: View {
     @ObservedObject var state: AppState
+    @State private var hovered = false
+
+    private let claudeOrange = Color(hex: "#D97757")
 
     var body: some View {
         Button {
@@ -18,14 +21,23 @@ struct ClaudePromptButton: View {
                 state.composingClaudePrompt = true
             }
         } label: {
-            Image(systemName: "square.and.pencil")
-                .font(.system(size: 8, weight: .semibold))
-                .foregroundColor(Color(hex: "#5F646D"))
-                .frame(width: 16, height: 16)
-                .background(Color.white.opacity(0.07))
-                .clipShape(Circle())
+            HStack(spacing: 4) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 9, weight: .semibold))
+                Text("Ask Claude")
+                    .font(.system(size: 10, weight: .semibold))
+                    .fixedSize()
+            }
+            .foregroundColor(hovered ? claudeOrange.lighter(by: 0.35) : claudeOrange.lighter(by: 0.15))
+            .padding(.horizontal, 8)
+            .frame(height: 18)
+            .background(Capsule().fill(claudeOrange.opacity(hovered ? 0.30 : 0.18)))
+            .overlay(Capsule().stroke(claudeOrange.opacity(hovered ? 0.6 : 0.35), lineWidth: 1))
+            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(NowPlayingPressStyle())
+        .scaleEffect(hovered ? 1.04 : 1)
+        .onHover { h in withAnimation(.easeOut(duration: 0.12)) { hovered = h } }
         .help(String(localized: "Message Claude"))
     }
 }
