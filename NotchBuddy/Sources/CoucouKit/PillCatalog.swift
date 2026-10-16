@@ -137,9 +137,18 @@ enum PillCatalog {
         #if APPSTORE
         all.filter { !$0.githubOnly }
         #else
-        all
+        all.filter { notchPlusPills.contains($0.id) }
         #endif
     }
+
+    /// The pared-down notch: Claude Code and music only. Every other service is out of the
+    /// catalog, so it can't be turned on and saved ones are dropped at launch
+    /// (AppState.loadIntegrationTasks). Add an ID here to bring a service back.
+    static let notchPlusPills: Set<String> = [
+        "integration_claude",
+        "integration_music",
+        "integration_spotify",
+    ]
 
     /// Default ID for the always-on main workspace pill.
     static let defaultMainPillId = "integration_claude"

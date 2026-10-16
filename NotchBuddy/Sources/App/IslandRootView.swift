@@ -33,11 +33,7 @@ struct IslandContainer: View {
     private let openSpring = Animation.spring(response: 0.5, dampingFraction: 0.72)
     private let closeEase  = Animation.timingCurve(0.45, 0, 0.2, 1, duration: 0.34)
 
-    private var chatPromptHeight: CGFloat {
-        let base: CGFloat = 240
-        let perMsg: CGFloat = 40
-        return min(300, base + CGFloat(state.chatHistory.count) * perMsg)
-    }
+    private var chatPromptHeight: CGFloat { state.chatPromptHeight }
 
     /// Pixels the content must be pushed down to clear the concave ear transparent area.
     /// = 0 in expanded mode (no ears), = earRadius in compact/notch mode.

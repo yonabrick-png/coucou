@@ -286,8 +286,15 @@ final class AppState: ObservableObject {
 
     // Context for prompt (window attach / file)
     @Published var promptContext: PromptContext? = nil
-    /// The Claude prompt box is open on the overview card: keeps the island open and key.
-    @Published var composingClaudePrompt = false
+    /// Height of the expanded chat view. The Claude chat (GitHub build) is a fixed size;
+    /// the App Store chat grows with its messages.
+    var chatPromptHeight: CGFloat {
+        #if !APPSTORE
+        return 300
+        #else
+        return min(300, 240 + CGFloat(chatHistory.count) * 40)
+        #endif
+    }
 
     // Dropped file (set during upload flow)
     @Published var droppedFile: DroppedFile? = nil

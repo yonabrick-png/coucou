@@ -26,9 +26,16 @@ final class ClaudeSessions: ObservableObject {
         var lastSeen: Date
         /// `SessionEnd` arrived: the terminal tab no longer runs it.
         var ended: Bool
+        /// The session's JSONL transcript (under ~/.claude/projects), for the chat tab.
+        var transcriptPath: String = ""
+        /// Between a prompt and the end of its turn.
+        var isWorking: Bool = false
+        var firstSeen: Date = Date()
     }
 
     @Published private(set) var sessions: [String: Session] = [:]
+    /// Bumped on every recorded event, so the chat re-reads the transcript.
+    @Published private(set) var revision = 0
 
     /// Sessions unheard of for this long are forgotten.
     private let maxAge: TimeInterval = 12 * 3600
@@ -48,10 +55,25 @@ final class ClaudeSessions: ObservableObject {
            let uid = iterm.split(separator: ":").last.map(String.init), Self.isSafeToken(uid) {
             s.itermSessionId = uid
         }
+        if let path = payload["transcript_path"] as? String, Self.isTranscriptPath(path) { s.transcriptPath = path }
+        switch event {
+        case "UserPromptSubmit":                    s.isWorking = true
+        case "Stop", "StopFailure", "SessionEnd":   s.isWorking = false
+        default: break
+        }
         s.lastSeen = Date()
         s.ended = event == "SessionEnd"
         sessions[id] = s
+        revision &+= 1
         prune()
+    }
+
+    /// Only Claude Code's own transcripts are ever read.
+    nonisolated static func isTranscriptPath(_ path: String) -> Bool {
+        let root = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".claude/projects").standardizedFileURL.path + "/"
+        let p = URL(fileURLWithPath: path).standardizedFileURL.path
+        return p.hasPrefix(root) && p.hasSuffix(".jsonl")
     }
 
     /// Most recently active first, live sessions before ended ones.

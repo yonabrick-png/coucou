@@ -19,7 +19,12 @@ struct IslandViewContent: View {
         case .uploading: UploadingView(state: state)
         case .choose:    ChooseView(state: state)
         case .mail:      MailView(state: state)
-        case .prompt:    PromptView(state: state)
+        case .prompt:
+            #if !APPSTORE
+            ClaudeChatView(state: state)   // the chat tab talks to Claude Code
+            #else
+            PromptView(state: state)
+            #endif
         case .searching: SearchingView(state: state)
         case .result:    ResultView(state: state)
         case .note:      NoteView(state: state)
@@ -148,19 +153,9 @@ struct OverviewView: View {
                         .transition(.opacity)
                 }
 
-                // Claude prompt box — covers the card while typing a prompt for a session
-                #if !APPSTORE
-                if state.composingClaudePrompt && agent?.id == "integration_claude" {
-                    CardBackground(wash: nil)
-                    ClaudePromptBox(state: state)
-                        .transition(.opacity)
-                }
-                #endif
-
                 // ↗ jump button — last in ZStack so it renders on top; hidden while any detail is open
                 #if !APPSTORE
                 let hideJumpButton = showingN8nDetail || state.showingPlanDetail || activeDiffId != nil
-                    || state.composingClaudePrompt
                 #else
                 let hideJumpButton = showingN8nDetail || activeDiffId != nil
                 #endif
@@ -176,18 +171,7 @@ struct OverviewView: View {
                     .buttonStyle(.plain)
                     .padding(.top, 8)
                     .padding(.trailing, 10)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-
-                    // ✎ message Claude — next to ↗ on the Claude pill
-                    #if !APPSTORE
-                    if agent?.id == "integration_claude" {
-                        ClaudePromptButton(state: state)
-                            .padding(.top, 7)
-                            .padding(.trailing, 31)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
-                    #endif
-                }
+                    .frame(maxWidth: .infinity, alignment: .trailing)                }
             }
             .frame(width: 322)
 
@@ -199,7 +183,6 @@ struct OverviewView: View {
         .onChange(of: state.focusId) { _, new in
             showingN8nDetail = false
             activeDiffId = nil
-            state.composingClaudePrompt = false
             #if !APPSTORE
             withAnimation(.easeIn(duration: 0.16)) { state.showingPlanDetail = false }
             #endif
@@ -214,7 +197,6 @@ struct OverviewView: View {
             #if !APPSTORE
             if m != .expanded { state.showingPlanDetail = false; activeDiffId = nil }
             #endif
-            if m != .expanded { state.composingClaudePrompt = false }
             if m == .expanded && state.focusId == "integration_github" {
                 GithubPoller.shared.refreshIfStale()
             }

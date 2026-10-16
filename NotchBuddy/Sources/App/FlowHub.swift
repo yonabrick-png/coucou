@@ -11,7 +11,12 @@ enum HubPage: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     static let flowPages: [HubPage] = [.dictation, .notes, .insights, .dictionary, .snippets, .styles, .settings]
+    #if APPSTORE
     static let notchPages: [HubPage] = [.general, .pills, .agents, .chat, .integrations, .voice, .shortcuts]
+    #else
+    // The chat tab talks to Claude Code and the services are gone: no Chat or Integrations pages.
+    static let notchPages: [HubPage] = [.general, .pills, .agents, .voice, .shortcuts]
+    #endif
 
     /// The section of Settings this page shows, for the notch's pages.
     var settingsSection: String? {

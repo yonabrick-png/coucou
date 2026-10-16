@@ -17,7 +17,6 @@ final class IslandWindowController: NSWindowController {
     private var viewSubscription: AnyCancellable?
     private var displaySubscription: AnyCancellable?
     private var autoCloseSubscription: AnyCancellable?
-    private var composeSubscription: AnyCancellable?
     private var openOnHoverSubscription: AnyCancellable?
 
     // Confused recovery timer (set by handleDizzy)
@@ -198,14 +197,6 @@ final class IslandWindowController: NSWindowController {
                     self.islandPanel.makeKey()
                 }
             }
-
-        // The Claude prompt box types into a TextField too: same key-window rule
-        composeSubscription = state.$composingClaudePrompt
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] composing in
-                if composing { self?.islandPanel.makeKey() }
-            }
-
         // Screen choice changed in Settings: move right away (explicit user action).
         displaySubscription = state.$islandDisplay
             .dropFirst()
@@ -333,10 +324,7 @@ final class IslandWindowController: NSWindowController {
         }
 
         // An approval, or an email prepared by voice, stays open until I click.
-        fsm.isHeldOpen = {
-            AppState.shared.pendingApproval != nil || AppState.shared.voiceMailDraft != nil
-                || AppState.shared.composingClaudePrompt
-        }
+        fsm.isHeldOpen = { AppState.shared.pendingApproval != nil || AppState.shared.voiceMailDraft != nil }
 
         // Voice: wake phrase detected → open listening island
         #if !APPSTORE
@@ -1325,9 +1313,7 @@ final class IslandWindowController: NSWindowController {
         // Chat view resizes dynamically — must match IslandContainer.chatPromptHeight
         let islandH: CGFloat
         if s.mode == .expanded && s.view == .prompt {
-            let base: CGFloat = 240
-            let perMsg: CGFloat = 40
-            islandH = min(300, base + CGFloat(s.chatHistory.count) * perMsg)
+            islandH = s.chatPromptHeight
         } else {
             islandH = fixedH
         }
@@ -1431,9 +1417,7 @@ final class IslandPanel: NSPanel {
                                       progress: s.uploadProgress, nw: nw, nh: nh)
         let h: CGFloat
         if s.mode == .expanded && s.view == .prompt {
-            let base: CGFloat = 240
-            let perMsg: CGFloat = 40
-            h = min(300, base + CGFloat(s.chatHistory.count) * perMsg)
+            h = s.chatPromptHeight
         } else {
             h = fixedH
         }
