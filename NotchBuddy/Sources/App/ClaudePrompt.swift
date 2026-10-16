@@ -96,6 +96,8 @@ enum ClaudePromptSender {
         case typed(app: String)
         /// Continuing the session in the background.
         case background(project: String)
+        /// A new session started in a Terminal window.
+        case started(project: String)
         /// On the clipboard for you to paste (why is the message).
         case copied(String)
         case failed(String)
@@ -125,6 +127,45 @@ enum ClaudePromptSender {
             }
         }
         return runInBackground(text, session: session)
+    }
+
+    // MARK: New session
+
+    /// Opens a Terminal window in `folder` running `claude "<prompt>"`.
+    static func startNewSession(_ raw: String, in folder: String) async -> Outcome {
+        let text = raw.components(separatedBy: .newlines).joined(separator: " ")
+            .trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return .failed(String(localized: "Type something first")) }
+        var isDirectory: ObjCBool = false
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let dir = FileManager.default.fileExists(atPath: folder, isDirectory: &isDirectory) && isDirectory.boolValue
+            ? folder : home
+        let claude = claudeExecutable() ?? "claude"
+        // Shell words in single quotes, then the whole command as an AppleScript string.
+        let command = "cd \(shellQuote(dir)) && \(shellQuote(claude)) \(shellQuote(text))"
+        let script = """
+        tell application id "com.apple.Terminal"
+            activate
+            do script "\(appleScriptQuote(command))"
+        end tell
+        """
+        switch await runAppleScript(script) {
+        case .value:
+            return .started(project: dir == home ? "~" : URL(fileURLWithPath: dir).lastPathComponent)
+        case .denied:
+            copyToClipboard(text)
+            return .copied(String(localized: "Allow Coucou to control Terminal (Settings → Privacy → Automation). On the clipboard for now."))
+        case .error:
+            return .failed(String(localized: "Couldn't open Terminal"))
+        }
+    }
+
+    private static func shellQuote(_ s: String) -> String {
+        "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    private static func appleScriptQuote(_ s: String) -> String {
+        s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
     }
 
     // MARK: Terminal tab
