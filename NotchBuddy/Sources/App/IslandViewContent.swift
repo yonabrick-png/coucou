@@ -31,12 +31,6 @@ struct IslandViewContent: View {
             #else
             EmptyView()
             #endif
-        case .clipboard:
-            #if !APPSTORE
-            ClipboardView(state: state)
-            #else
-            EmptyView()
-            #endif
         case .searching: SearchingView(state: state)
         case .result:    ResultView(state: state)
         case .note:      NoteView(state: state)

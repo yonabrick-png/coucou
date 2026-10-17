@@ -41,8 +41,16 @@ final class GarminStore: ObservableObject {
 
     @Published private(set) var snapshot: Snapshot?
     @Published private(set) var missing = false
+    /// Redline's fetcher is running (pulling today's numbers from Garmin).
+    @Published private(set) var fetching = false
+    /// When the data file was last written.
+    @Published private(set) var updatedAt: Date?
 
     private var loadedAt: Date?
+    private var lastFetch: Date?
+
+    /// Older than this, the card asks Redline for fresh numbers (at most once an hour).
+    nonisolated private static let staleAfter: TimeInterval = 3 * 3600
     private var poll: Timer?
     private var cancellables = Set<AnyCancellable>()
 
@@ -53,7 +61,12 @@ final class GarminStore: ObservableObject {
     private init() {
         refresh()
         poll = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { _ in
-            Task { @MainActor in GarminStore.shared.refresh() }
+            Task { @MainActor in
+                let s = GarminStore.shared
+                s.refresh()
+                // Keep the pill current through the day: a fetch when the data is 3 h old
+                if AppState.shared.activeIntegrations.contains(GarminStore.pillId) { s.fetchIfStale() }
+            }
         }
         AppState.shared.$tasks
             .map { $0.contains { $0.id == Self.pillId } }
@@ -70,12 +83,55 @@ final class GarminStore: ObservableObject {
             missing = true; snapshot = nil; syncTaskName(); return
         }
         missing = false
+        updatedAt = modified
         if let loadedAt, modified <= loadedAt, snapshot != nil { return }
         guard let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
         snapshot = Self.parse(json)
         loadedAt = modified
         syncTaskName()
+    }
+
+    // MARK: Fresh numbers
+
+    /// Runs Redline's `build.py` (Garmin + race data, no publishing) when the data is older than
+    /// 3 hours, or right away with `force`. Never more than once an hour on its own.
+    func fetchIfStale(force: Bool = false) {
+        guard !fetching else { return }
+        let age = updatedAt.map { Date().timeIntervalSince($0) } ?? .infinity
+        if !force {
+            guard age > Self.staleAfter else { return }
+            if let lastFetch, Date().timeIntervalSince(lastFetch) < 3600 { return }
+        }
+        let dir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("redline")
+        guard FileManager.default.fileExists(atPath: dir.appendingPathComponent("build.py").path) else { return }
+
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+        p.arguments = ["build.py"]
+        p.currentDirectoryURL = dir
+        var env = ProcessInfo.processInfo.environment
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        env["HOME"] = home
+        env["PATH"] = "\(home)/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        p.environment = env
+        p.standardInput = FileHandle.nullDevice
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        p.terminationHandler = { _ in
+            Task { @MainActor in
+                let s = GarminStore.shared
+                s.fetching = false
+                s.refresh()
+            }
+        }
+        do {
+            try p.run()
+            fetching = true
+            lastFetch = Date()
+        } catch {
+            fetching = false
+        }
     }
 
     private static func latest<T>(_ dict: Any?) -> T? {
@@ -171,12 +227,44 @@ struct GarminCardView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .onAppear { store.refresh() }
+        .onAppear {
+            store.refresh()
+            store.fetchIfStale()
+        }
+    }
+
+    /// "Updated today 10:42" with a ↻ to fetch now (spins while fetching).
+    private var updatedLine: some View {
+        HStack(spacing: 4) {
+            Text(Self.updatedText(store.updatedAt, fetching: store.fetching))
+                .font(.system(size: 9))
+                .foregroundColor(Color(hex: "#5F646D"))
+            Button { store.fetchIfStale(force: true) } label: {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(Color(hex: store.fetching ? "#22D3EE" : "#6B7079"))
+                    .rotationEffect(.degrees(store.fetching ? 360 : 0))
+                    .animation(store.fetching ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
+                               value: store.fetching)
+            }
+            .buttonStyle(.plain)
+            .disabled(store.fetching)
+            .help(String(localized: "Get today's numbers from Garmin now"))
+        }
+    }
+
+    static func updatedText(_ date: Date?, fetching: Bool) -> String {
+        if fetching { return String(localized: "Updating from Garmin…") }
+        guard let date else { return "" }
+        let time = date.formatted(date: .omitted, time: .shortened)
+        if Calendar.current.isDateInToday(date) { return String(localized: "Updated today \(time)") }
+        if Calendar.current.isDateInYesterday(date) { return String(localized: "Updated yesterday \(time)") }
+        return String(localized: "Updated \(date.formatted(date: .abbreviated, time: .shortened))")
     }
 
     private func content(_ s: GarminStore.Snapshot) -> some View {
         let color = GarminStore.readinessColor(s.readinessLevel)
-        return VStack(alignment: .leading, spacing: 6) {
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .center, spacing: 12) {
                 // Readiness ring
                 ZStack {
@@ -216,6 +304,7 @@ struct GarminCardView: View {
                 }
             }
             if let race = s.race { raceLine(race) }
+            updatedLine
         }
         .padding(.top, 8)
         .padding(.leading, 108)

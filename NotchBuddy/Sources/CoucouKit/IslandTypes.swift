@@ -15,7 +15,6 @@ enum IslandView: String, CaseIterable {
     case listening    // voice wake detected — "À l'écoute…" with live transcript
     case voiceResult  // voice command executed — "✓ Musique lancée" for ~2 s
     case calendar     // month grid + the picked day's events (GitHub build)
-    case clipboard    // the last things you copied (GitHub build)
 }
 
 // MARK: - Bot State
@@ -241,7 +240,7 @@ enum IslandConst {
         .voiceResult:  ViewLayout(height: 160, botX: 68,  botY: nil, botDiameter: 58, agentMode: .none),
         // Calendar: tall like the chat, Mochi placed like the chat's
         .calendar:     ViewLayout(height: 300, botX: 52,  botY: nil, botDiameter: 44, agentMode: .none),
-        .clipboard:    ViewLayout(height: 300, botX: 52,  botY: nil, botDiameter: 44, agentMode: .none),    ]
+    ]
 
     // Project colors — keyed by lowercase display name or slug
     static let projectColors: [String: String] = [

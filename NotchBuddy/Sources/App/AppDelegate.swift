@@ -294,7 +294,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = FocusTimer.shared
         _ = NotesStore.shared
         _ = GarminStore.shared
-        _ = ClipboardHistory.shared
         _ = DeviceHUD.shared
         #else
         CryptoController.shared.start()

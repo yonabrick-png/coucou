@@ -548,8 +548,10 @@ struct IslandHeader: View {
                 })
                 #if !APPSTORE
                 TabButton(icon: "calendar", view: .calendar, state: state)
-                TabButton(icon: "doc.on.clipboard", view: .clipboard, state: state)                #endif
+                #else
                 TabButton(icon: "plus", view: .upload, state: state)
+                #endif
+                // GitHub build: no ＋ tab — drop files straight onto the notch (they go to the Shelf)
             }
             .padding(.leading, 14)
 
