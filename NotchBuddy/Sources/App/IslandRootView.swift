@@ -547,7 +547,7 @@ struct IslandHeader: View {
                     #endif
                 })
                 #if !APPSTORE
-                TabButton(icon: "calendar", view: .calendar, state: state)
+                TabButton(icon: "figure.run", view: .garmin, state: state)
                 #else
                 TabButton(icon: "plus", view: .upload, state: state)
                 #endif

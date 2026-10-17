@@ -25,9 +25,9 @@ struct IslandViewContent: View {
             #else
             PromptView(state: state)
             #endif
-        case .calendar:
+        case .garmin:
             #if !APPSTORE
-            CalendarMonthView(state: state)
+            GarminFullView(state: state)
             #else
             EmptyView()
             #endif

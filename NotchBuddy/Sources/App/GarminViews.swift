@@ -39,7 +39,54 @@ final class GarminStore: ObservableObject {
         var race: Race?
     }
 
+    /// Everything else in the Redline data, for the full Garmin view.
+    struct Details: Equatable {
+        struct Day: Equatable, Identifiable { let id: String; let date: Date; let score: Int; let level: String }
+        struct Activity: Equatable, Identifiable {
+            let id: String
+            let name: String
+            let type: String
+            let date: Date?
+            let km: Double
+            let minutes: Double
+            let hr: Int?
+            let effect: String
+        }
+        struct Rival: Equatable, Identifiable { let id: String; let name: String; let club: String; let best: String }
+        struct Record: Equatable, Identifiable { let id: String; let event: String; let result: String; let date: String; let meet: String }
+
+        var statusLabel: String
+        var statusBand: String
+        var loadRatio: Double?
+        var loadStatus: String
+        var loadBand: String
+        var vo2Sub: String
+        var hrvStatus: String
+        var stress: Int?
+        var bannerKicker: String
+        var bannerTitle: String
+        var bannerText: String
+        var bannerTone: String
+        var week: [Day]
+        var predictions: [(String, Int)]
+        var activities: [Activity]
+        var raceVenue: String
+        var raceEvent: String
+        var raceRegistered: Bool
+        var racePace: String
+        var raceBasis: String
+        var raceURL: URL?
+        var rivals: [Rival]
+        var records: [Record]
+
+        static func == (a: Details, b: Details) -> Bool {
+            a.week == b.week && a.activities == b.activities && a.bannerTitle == b.bannerTitle
+                && a.records == b.records && a.rivals == b.rivals && a.stress == b.stress
+        }
+    }
+
     @Published private(set) var snapshot: Snapshot?
+    @Published private(set) var details: Details?
     @Published private(set) var missing = false
     /// Redline's fetcher is running (pulling today's numbers from Garmin).
     @Published private(set) var fetching = false
@@ -88,6 +135,7 @@ final class GarminStore: ObservableObject {
         guard let data = try? Data(contentsOf: url),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
         snapshot = Self.parse(json)
+        details = Self.parseDetails(json)
         loadedAt = modified
         syncTaskName()
     }
@@ -176,6 +224,87 @@ final class GarminStore: ObservableObject {
             bannerTone: banner["tone"] as? String ?? "",
             generated: j["generated"] as? String ?? "",
             race: race)
+    }
+
+    private static func parseDetails(_ j: [String: Any]) -> Details {
+        let today = j["today"] as? [String: Any] ?? [:]
+        let status = today["status"] as? [String: Any] ?? [:]
+        let acwr = today["acwr"] as? [String: Any] ?? [:]
+        let banner = j["banner"] as? [String: Any] ?? [:]
+        let race = j["nextRace"] as? [String: Any] ?? [:]
+        let target = race["target"] as? [String: Any] ?? [:]
+        let day = DateFormatter()
+        day.dateFormat = "yyyy-MM-dd"
+        let stamp = DateFormatter()
+        stamp.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let readiness = j["readiness"] as? [String: [String: Any]] ?? [:]
+        let week = readiness.keys.sorted().suffix(7).compactMap { key -> Details.Day? in
+            guard let date = day.date(from: key), let score = readiness[key]?["score"] as? Int else { return nil }
+            return Details.Day(id: key, date: date, score: score, level: readiness[key]?["level"] as? String ?? "")
+        }
+
+        let paras = (banner["paras"] as? [String] ?? []).map(stripTags)
+
+        let activities = (j["activities"] as? [[String: Any]] ?? []).enumerated().map { i, a in
+            let detail = a["detail"] as? [String: Any] ?? [:]
+            return Details.Activity(
+                id: "\(i)-\(a["date"] as? String ?? "")",
+                name: a["name"] as? String ?? "Activity",
+                type: a["type"] as? String ?? "",
+                date: (a["date"] as? String).flatMap { stamp.date(from: $0) },
+                km: a["km"] as? Double ?? 0,
+                minutes: a["min"] as? Double ?? 0,
+                hr: a["hr"] as? Int,
+                effect: detail["teLabel"] as? String ?? "")
+        }
+
+        let rivals = (race["rivals"] as? [[String: Any]] ?? []).enumerated().map { i, r in
+            Details.Rival(id: "\(i)", name: r["name"] as? String ?? "",
+                          club: r["club"] as? String ?? "",
+                          best: (r["best"] as? [String: Any])?["result"] as? String ?? "")
+        }
+
+        let records = (j["pbs"] as? [[String: Any]] ?? []).enumerated().map { i, p in
+            Details.Record(id: "\(i)", event: p["event"] as? String ?? "", result: p["result"] as? String ?? "",
+                           date: p["date"] as? String ?? "", meet: p["meet"] as? String ?? "")
+        }
+
+        let predictions = (j["races"] as? [[String: Any]] ?? []).compactMap { r -> (String, Int)? in
+            guard let d = r["d"] as? String, let t = r["t"] as? Int else { return nil }
+            return (d, t)
+        }
+
+        return Details(
+            statusLabel: status["label"] as? String ?? "",
+            statusBand: status["band"] as? String ?? "",
+            loadRatio: acwr["ratio"] as? Double,
+            loadStatus: acwr["status"] as? String ?? "",
+            loadBand: acwr["band"] as? String ?? "",
+            vo2Sub: (today["vo2"] as? [String: Any])?["sub"] as? String ?? "",
+            hrvStatus: (today["hrv"] as? [String: Any])?["status"] as? String ?? "",
+            stress: latest(j["stress"]),
+            bannerKicker: banner["kicker"] as? String ?? "",
+            bannerTitle: banner["title"] as? String ?? "",
+            bannerText: paras.first ?? "",
+            bannerTone: banner["tone"] as? String ?? "",
+            week: week,
+            predictions: predictions,
+            activities: activities,
+            raceVenue: race["venue"] as? String ?? "",
+            raceEvent: race["event"] as? String ?? "",
+            raceRegistered: race["registered"] as? Bool ?? false,
+            racePace: target["pace"] as? String ?? "",
+            raceBasis: target["basis"] as? String ?? "",
+            raceURL: (race["url"] as? String).flatMap(safeWebURL),
+            rivals: rivals,
+            records: records)
+    }
+
+    /// Redline's banner paragraphs carry a little HTML (<strong>): plain text here.
+    private static func stripTags(_ s: String) -> String {
+        s.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "&amp;", with: "&")
     }
 
     /// The pill reads "Ready 25" (or "Garmin" with no data).
