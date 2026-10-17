@@ -168,8 +168,11 @@ final class IslandWindowController: NSWindowController {
                     self?.attachToVoiceMailCard(url)
                     return
                 }
-                #endif
+                // Everything else goes to the shelf
+                await ShelfDrop.handle(urls: urls, state: AppState.shared)
+                #else
                 await FileDropHandler.handle(urls: urls, state: AppState.shared)
+                #endif
             }
         }
 

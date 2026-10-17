@@ -286,6 +286,10 @@ struct OverviewView: View {
             #if !APPSTORE
             MusicController.shared.openMusic()
             #endif
+        case "integration_shelf":
+            #if !APPSTORE
+            ShelfStore.shared.revealAll()   // ↗ shows the shelf's files in Finder
+            #endif
         case "integration_calendar":
             #if !APPSTORE
             if let next = CalendarController.shared.next, next.joinURL != nil {
@@ -1878,6 +1882,8 @@ struct IntegrationCardView: View {
             #endif
         case "agent_claude-desktop":
             return true  // nothing to install: the relay tags desktop sessions on its own
+        case "integration_shelf":
+            return true  // nothing to set up: drop files on the notch
         case "integration_calendar":
             #if !APPSTORE
             return true  // the card asks for calendar access itself
@@ -2160,6 +2166,11 @@ struct IntegrationCardView: View {
         } else if isCalendar {
             #if !APPSTORE
             CalendarCardView()
+                .transition(.opacity)
+            #endif
+        } else if task.id == "integration_shelf" {
+            #if !APPSTORE
+            ShelfCardView()
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {
