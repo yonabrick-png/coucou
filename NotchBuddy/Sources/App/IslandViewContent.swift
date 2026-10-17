@@ -31,6 +31,12 @@ struct IslandViewContent: View {
             #else
             EmptyView()
             #endif
+        case .clipboard:
+            #if !APPSTORE
+            ClipboardView(state: state)
+            #else
+            EmptyView()
+            #endif
         case .searching: SearchingView(state: state)
         case .result:    ResultView(state: state)
         case .note:      NoteView(state: state)
@@ -319,6 +325,10 @@ struct OverviewView: View {
         case "integration_notes":
             #if !APPSTORE
             NotificationCenter.default.post(name: .notesFocusInput, object: nil)   // ↗ to write
+            #endif
+        case "integration_garmin":
+            #if !APPSTORE
+            GarminStore.shared.openDashboard()   // ↗ opens the Redline dashboard
             #endif
         case "integration_calendar":
             #if !APPSTORE
@@ -1914,7 +1924,7 @@ struct IntegrationCardView: View {
             return true  // nothing to install: the relay tags desktop sessions on its own
         case "integration_shelf":
             return true  // nothing to set up: drop files on the notch
-        case "integration_timer", "integration_notes":
+        case "integration_timer", "integration_notes", "integration_garmin":
             return true  // nothing to set up
         case "integration_calendar":
             #if !APPSTORE
@@ -2213,6 +2223,11 @@ struct IntegrationCardView: View {
         } else if task.id == "integration_notes" {
             #if !APPSTORE
             NotesCardView()
+                .transition(.opacity)
+            #endif
+        } else if task.id == "integration_garmin" {
+            #if !APPSTORE
+            GarminCardView()
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {
@@ -4089,7 +4104,11 @@ struct AgentPillsView: View {
     }
 
     private var displayTasks: [AgentTask] {
+        #if !APPSTORE
+        Array(others.prefix(6))   // up to three rows: the GitHub build holds up to 7 pills
+        #else
         Array(others.prefix(4))
+        #endif
     }
 
     private let columns = [

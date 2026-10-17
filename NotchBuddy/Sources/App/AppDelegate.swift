@@ -293,6 +293,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = ShelfStore.shared
         _ = FocusTimer.shared
         _ = NotesStore.shared
+        _ = GarminStore.shared
+        _ = ClipboardHistory.shared
+        _ = DeviceHUD.shared
         #else
         CryptoController.shared.start()
         PortfolioController.shared.start()

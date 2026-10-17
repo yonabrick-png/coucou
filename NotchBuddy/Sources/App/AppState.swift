@@ -709,10 +709,11 @@ final class AppState: ObservableObject {
 
     /// Toggle a catalog pill on/off.
     /// mainPillId: never toggleable (change via the Main picker first).
-    /// Non-main pills active at once: 4, or 5 in the GitHub build (Timer, Music, Calendar,
-    /// Shelf, Notes) — the focused one sits in the card, the four others fill the grid.
+    /// Non-main pills active at once: 4, or 7 in the GitHub build (Timer, Notes, Music,
+    /// Calendar, Shelf, Garmin, Classroom) — the focused one sits in the card, up to six
+    /// others fill the grid's three rows.
     #if !APPSTORE
-    static let maxIntegrations = 5
+    static let maxIntegrations = 7
     #else
     static let maxIntegrations = 4
     #endif

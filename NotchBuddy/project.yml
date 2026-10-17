@@ -162,6 +162,7 @@ targets:
         NSContactsUsageDescription: "Coucou looks up an email address when you ask it, by voice, to prepare an email."
         NSCalendarsFullAccessUsageDescription: "Coucou shows your next events and their countdown in the notch."
         NSCalendarsUsageDescription: "Coucou shows your next events and their countdown in the notch."
+        NSBluetoothAlwaysUsageDescription: "Coucou shows your headphones' battery in the notch when they connect."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         CFBundleLocalizations:
