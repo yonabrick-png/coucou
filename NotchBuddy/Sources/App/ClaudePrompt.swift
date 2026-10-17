@@ -167,6 +167,48 @@ enum ClaudePromptSender {
         return runInBackground(text, session: session)
     }
 
+    // MARK: Opening a session
+
+    /// Brings the session's own Terminal / iTerm tab to the front. A session that ended (or
+    /// whose tab is gone) is resumed in a new Terminal window instead (`claude --resume`).
+    /// Returns what happened, for the status line.
+    @discardableResult
+    static func open(_ s: ClaudeSessions.Session) async -> String {
+        if !s.ended {
+            switch await focusTab(of: s) {
+            case .focused(let app):
+                return String(localized: "Opened in \(app)")
+            case .unsupported(let app), .denied(let app):
+                activate(s.hostApp)   // can't pick the tab: at least the app
+                return String(localized: "Opened \(app)")
+            case .notFound:
+                break   // the tab is gone: resume it below
+            }
+        }
+        return await resumeInTerminal(s)
+    }
+
+    /// A new Terminal window in the session's folder running `claude --resume <id>`.
+    private static func resumeInTerminal(_ s: ClaudeSessions.Session) async -> String {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        var isDirectory: ObjCBool = false
+        let dir = FileManager.default.fileExists(atPath: s.cwd, isDirectory: &isDirectory) && isDirectory.boolValue
+            ? s.cwd : home
+        let claude = claudeExecutable() ?? "claude"
+        let command = "cd \(shellQuote(dir)) && \(shellQuote(claude)) --resume \(shellQuote(s.id))"
+        let script = """
+        tell application id "com.apple.Terminal"
+            activate
+            do script "\(appleScriptQuote(command))"
+        end tell
+        """
+        switch await runAppleScript(script) {
+        case .value: return String(localized: "Resumed \(s.projectName) in Terminal")
+        case .denied: return String(localized: "Allow Coucou to control Terminal (Settings → Privacy → Automation)")
+        case .error: return String(localized: "Couldn't open Terminal")
+        }
+    }
+
     // MARK: Claude desktop app
 
     static let claudeAppId = "com.anthropic.claudefordesktop"

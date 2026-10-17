@@ -344,7 +344,13 @@ struct OverviewView: View {
                 }
             } else {
                 #if !APPSTORE
-                TerminalTarget.activate(sessionBundleId: task.sessionBundleId)
+                // The Claude pill: straight to the latest running session's own Terminal tab
+                if task.id == "integration_claude",
+                   let session = ClaudeSessions.shared.recent.first(where: { !$0.ended }) {
+                    Task { await ClaudePromptSender.open(session) }
+                } else {
+                    TerminalTarget.activate(sessionBundleId: task.sessionBundleId)
+                }
                 #endif
             }
         }

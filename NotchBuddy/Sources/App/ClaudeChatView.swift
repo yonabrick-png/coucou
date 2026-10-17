@@ -176,19 +176,25 @@ struct ClaudeChatView: View {
                         .foregroundColor(Color(hex: "#8E939C"))
                 }
             }
-            if let target, target.hostApp != nil, !target.ended {
+            if let target {
+                // Jump to this session's own Terminal tab (or resume it if it ended)
                 Button {
-                    TerminalTarget.activate(sessionBundleId: target.hostApp)
+                    Task { status = await ClaudePromptSender.open(target); statusIsError = false }
                 } label: {
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 8, weight: .medium))
-                        .foregroundColor(Color(hex: "#8E939C"))
-                        .frame(width: 16, height: 16)
-                        .background(Color.white.opacity(0.07))
-                        .clipShape(Circle())
+                    HStack(spacing: 3) {
+                        Image(systemName: target.ended ? "arrow.counterclockwise" : "terminal")
+                            .font(.system(size: 8.5, weight: .semibold))
+                        Text(target.ended ? String(localized: "Resume") : String(localized: "Open"))
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(Color(hex: "#C5C8CD"))
+                    .padding(.horizontal, 7)
+                    .frame(height: 18)
+                    .background(Capsule().fill(Color.white.opacity(0.08)))
                 }
-                .buttonStyle(.plain)
-                .help(String(localized: "Open the terminal"))
+                .buttonStyle(NowPlayingPressStyle())
+                .help(target.ended ? String(localized: "Resume this conversation in a new Terminal window")
+                                   : String(localized: "Go to this session's Terminal tab"))
             }
         }
     }
