@@ -110,11 +110,11 @@ final class ClaudeSessions: ObservableObject {
 // MARK: - The Claude pill only while a session runs
 
 extension AgentTask {
-    /// The Claude Code pill with no session running and nothing to say: hidden from the notch
-    /// (the chat tab is where Claude lives). It comes back with the first hook of a session.
+    /// The Claude Code pill never shows on the home screen: Claude lives in the 💬 chat tab
+    /// (sessions, Open / Resume, messages), and permission requests and questions open their
+    /// own views without needing the pill.
     @MainActor var isDormantClaudePill: Bool {
-        id == "integration_claude" && state == .idle && pillBadge == nil
-            && !ClaudeSessions.shared.hasLiveSession
+        id == "integration_claude"
     }
 }
 
