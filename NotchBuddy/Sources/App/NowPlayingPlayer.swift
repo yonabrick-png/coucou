@@ -177,9 +177,14 @@ struct CompactTrailing: View {
     @ObservedObject private var music = MusicController.shared
     @ObservedObject private var spotify = SpotifyController.shared
     @ObservedObject private var calendar = CalendarController.shared
+    @ObservedObject private var timer = FocusTimer.shared
 
     var body: some View {
-        if state.activeIntegrations.contains(MusicController.pillId),
+        if state.activeIntegrations.contains(FocusTimer.pillId), timer.isActive {
+            // A running (or paused, or just finished) timer comes first
+            CompactFocusTimer()
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        } else if state.activeIntegrations.contains(MusicController.pillId),
            state.musicPlaying, music.trackTitle != nil {
             CompactNowPlaying(artwork: music.artwork, isPlaying: true,
                               brand: Color(hex: MusicController.red))

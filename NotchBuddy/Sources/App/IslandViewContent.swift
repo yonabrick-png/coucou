@@ -312,6 +312,10 @@ struct OverviewView: View {
             #if !APPSTORE
             ShelfStore.shared.revealAll()   // ↗ shows the shelf's files in Finder
             #endif
+        case "integration_timer":
+            #if !APPSTORE
+            FocusTimer.shared.toggle()      // ↗ starts / pauses
+            #endif
         case "integration_calendar":
             #if !APPSTORE
             if let next = CalendarController.shared.next, next.joinURL != nil {
@@ -1906,6 +1910,8 @@ struct IntegrationCardView: View {
             return true  // nothing to install: the relay tags desktop sessions on its own
         case "integration_shelf":
             return true  // nothing to set up: drop files on the notch
+        case "integration_timer":
+            return true  // nothing to set up
         case "integration_calendar":
             #if !APPSTORE
             return true  // the card asks for calendar access itself
@@ -2193,6 +2199,11 @@ struct IntegrationCardView: View {
         } else if task.id == "integration_shelf" {
             #if !APPSTORE
             ShelfCardView()
+                .transition(.opacity)
+            #endif
+        } else if task.id == "integration_timer" {
+            #if !APPSTORE
+            FocusTimerCardView()
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {
