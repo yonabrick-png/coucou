@@ -86,7 +86,11 @@ struct ClaudeChatView: View {
     @ObservedObject var state: AppState
     @ObservedObject private var sessions = ClaudeSessions.shared
 
-    private enum Choice: Equatable { case session(String), newSession }
+    /// Where the next message goes: a Claude Code session in a terminal, a new one in Terminal,
+    /// or the Claude desktop app (a new chat, or a new Code session there).
+    private enum Choice: Equatable { case session(String), newSession, appChat, appCode }
+
+    private var toClaudeApp: Bool { choice == .appChat || choice == .appCode }
 
     @State private var choice: Choice?
     @State private var lines: [ClaudeChatLine] = []
@@ -102,7 +106,7 @@ struct ClaudeChatView: View {
 
     private var target: ClaudeSessions.Session? {
         switch choice {
-        case .newSession:       return nil
+        case .newSession, .appChat, .appCode: return nil
         case .session(let id):  return sessions.session(id: id) ?? sessions.recent.first
         case nil:               return sessions.recent.first
         }
@@ -191,14 +195,21 @@ struct ClaudeChatView: View {
 
     private var sessionPicker: some View {
         Menu {
-            ForEach(sessions.recent) { s in
-                Button(Self.describe(s)) { choice = .session(s.id) }
+            Section(String(localized: "Claude Code · Terminal")) {
+                ForEach(sessions.recent) { s in
+                    Button(Self.describe(s)) { choice = .session(s.id) }
+                }
+                Button(String(localized: "New session in \(newSessionName)  ⌘K")) { choice = .newSession }
             }
-            if !sessions.recent.isEmpty { Divider() }
-            Button(String(localized: "New session in \(newSessionName)  ⌘K")) { choice = .newSession }
+            if ClaudePromptSender.claudeAppInstalled {
+                Section(String(localized: "Claude app")) {
+                    Button(String(localized: "New chat")) { choice = .appChat }
+                    Button(String(localized: "New Code session in \(newSessionName)")) { choice = .appCode }
+                }
+            }
         } label: {
             HStack(spacing: 3) {
-                Text(target.map(Self.describe) ?? String(localized: "new session in \(newSessionName)"))
+                Text(choiceLabel)
                     .lineLimit(1).truncationMode(.tail)
                 Image(systemName: "chevron.down").font(.system(size: 7, weight: .semibold))
             }
@@ -208,6 +219,14 @@ struct ClaudeChatView: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
+    }
+
+    private var choiceLabel: String {
+        switch choice {
+        case .appChat: return String(localized: "Claude app · new chat")
+        case .appCode: return String(localized: "Claude app · Code in \(newSessionName)")
+        default:       return target.map(Self.describe) ?? String(localized: "new session in \(newSessionName)")
+        }
     }
 
     private static func describe(_ s: ClaudeSessions.Session) -> String {
@@ -252,6 +271,8 @@ struct ClaudeChatView: View {
     }
 
     private var emptyText: String {
+        if choice == .appChat { return String(localized: "Your message opens a new chat in the Claude app. The conversation continues there.") }
+        if choice == .appCode { return String(localized: "Your message starts a Code session in the Claude app, in \(newSessionName).") }
         guard let target else { return String(localized: "Type below to start Claude in \(newSessionName)") }
         if target.transcriptPath.isEmpty { return String(localized: "Send a message in \(target.projectName) to see the conversation here") }
         return String(localized: "No messages yet in \(target.projectName)")
@@ -290,11 +311,13 @@ struct ClaudeChatView: View {
     }
 
     private var placeholder: String {
+        if toClaudeApp { return String(localized: "Message Claude in the Claude app…") }
         guard let target else { return String(localized: "Start Claude in \(newSessionName)…") }
         return String(localized: "Message Claude in \(target.projectName)…")
     }
 
     private var hint: String {
+        if toClaudeApp { return String(localized: "Return opens the Claude app and sends it") }
         guard let target else { return String(localized: "Return opens Terminal with a new Claude session") }
         if target.ended { return String(localized: "Session ended: Return continues it in the background") }
         return String(localized: "Return types it into the session's terminal · ⌘K new session")
@@ -341,10 +364,13 @@ struct ClaudeChatView: View {
         let target = self.target
         let folder = newSessionFolder
         status = target?.ended == false ? String(localized: "Sending…") : String(localized: "Starting…")
+        let appTarget: ClaudePromptSender.ClaudeAppTarget? = choice == .appChat ? .chat : (choice == .appCode ? .code : nil)
         Task {
             let outcome: ClaudePromptSender.Outcome
             let since = Date()
-            if let target {
+            if let appTarget {
+                outcome = await ClaudePromptSender.sendToClaudeApp(prompt, target: appTarget, folder: folder)
+            } else if let target {
                 outcome = await ClaudePromptSender.send(prompt, to: target)
             } else {
                 outcome = await ClaudePromptSender.startNewSession(prompt, in: folder)
@@ -364,6 +390,11 @@ struct ClaudeChatView: View {
                 text = ""
                 status = String(localized: "New session in \(project) ✓")
                 follow = (folder, since)
+                SoundEngine.shared.play("approve")
+            case .inClaudeApp(let sent):
+                text = ""
+                status = sent ? String(localized: "Sent in the Claude app ✓")
+                              : String(localized: "Ready in the Claude app: press Return there to send")
                 SoundEngine.shared.play("approve")
             case .copied(let why):
                 statusIsError = true

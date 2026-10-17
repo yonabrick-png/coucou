@@ -134,6 +134,8 @@ enum ClaudePromptSender {
         case background(project: String)
         /// A new session started in a Terminal window.
         case started(project: String)
+        /// Opened in the Claude desktop app (sent: Return was pressed for you).
+        case inClaudeApp(sent: Bool)
         /// On the clipboard for you to paste (why is the message).
         case copied(String)
         case failed(String)
@@ -163,6 +165,58 @@ enum ClaudePromptSender {
             }
         }
         return runInBackground(text, session: session)
+    }
+
+    // MARK: Claude desktop app
+
+    static let claudeAppId = "com.anthropic.claudefordesktop"
+
+    enum ClaudeAppTarget { case chat, code }
+
+    static var claudeAppInstalled: Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: claudeAppId) != nil
+    }
+
+    /// Opens the Claude desktop app on a new chat (or a new Code session in `folder`) with the
+    /// message in its box, through the app's own links — the ones its "Ask Claude" service and
+    /// Dock menu use. Then presses Return once the app is in front, so it's sent; without
+    /// Accessibility the message just waits in the box.
+    static func sendToClaudeApp(_ raw: String, target: ClaudeAppTarget, folder: String) async -> Outcome {
+        var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        // The app refuses a q that starts with "/" (it reads as a path)
+        while text.hasPrefix("/") { text.removeFirst() }
+        guard !text.isEmpty else { return .failed(String(localized: "Type something first")) }
+        guard claudeAppInstalled else { return .failed(String(localized: "The Claude app isn't installed")) }
+
+        var comps = URLComponents()
+        comps.scheme = "claude"
+        switch target {
+        case .chat:
+            comps.host = "claude.ai"
+            comps.path = "/new"
+            comps.queryItems = [URLQueryItem(name: "q", value: text),
+                                URLQueryItem(name: "surface", value: "chat"),
+                                URLQueryItem(name: "source", value: "services")]
+        case .code:
+            comps.host = "code"
+            comps.path = "/new"
+            comps.queryItems = [URLQueryItem(name: "q", value: text),
+                                URLQueryItem(name: "folder", value: folder)]
+        }
+        guard let url = comps.url else { return .failed(String(localized: "Couldn't open the Claude app")) }
+        NSWorkspace.shared.open(url)
+
+        // Wait for the app to come forward and fill its box, then send
+        var front = false
+        for _ in 0..<25 {
+            try? await Task.sleep(for: .milliseconds(200))
+            if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == claudeAppId { front = true; break }
+        }
+        guard front, AXIsProcessTrusted() else { return .inClaudeApp(sent: false) }
+        try? await Task.sleep(for: .milliseconds(1400))
+        guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == claudeAppId else { return .inClaudeApp(sent: false) }
+        pressReturn()
+        return .inClaudeApp(sent: true)
     }
 
     // MARK: New session
