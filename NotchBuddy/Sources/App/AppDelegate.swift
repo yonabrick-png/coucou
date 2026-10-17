@@ -293,6 +293,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = CalendarController.shared
         _ = ShelfStore.shared
         _ = FocusTimer.shared
+        _ = NotesStore.shared
         MailController.shared.start()
         #endif
         CryptoController.shared.start()

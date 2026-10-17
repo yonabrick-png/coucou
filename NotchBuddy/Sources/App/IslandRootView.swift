@@ -548,6 +548,7 @@ struct IslandHeader: View {
                 })
                 #if !APPSTORE
                 TabButton(icon: "calendar", view: .calendar, state: state)
+                TabButton(icon: "note.text", view: .notes, state: state)
                 #endif
                 TabButton(icon: "plus", view: .upload, state: state)
             }
