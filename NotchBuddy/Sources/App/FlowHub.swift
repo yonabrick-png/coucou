@@ -10,12 +10,15 @@ enum HubPage: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    static let flowPages: [HubPage] = [.dictation, .notes, .insights, .dictionary, .snippets, .styles, .settings]
+    // Flow dictation and the Notetaker are gone from this build: the window keeps only the
+    // notch's pages. (Upstream: [.dictation, .notes, .insights, .dictionary, .snippets, .styles, .settings])
+    static let flowPages: [HubPage] = []
     #if APPSTORE
     static let notchPages: [HubPage] = [.general, .pills, .agents, .chat, .integrations, .voice, .shortcuts]
     #else
-    // The chat tab talks to Claude Code and the services are gone: no Chat or Integrations pages.
-    static let notchPages: [HubPage] = [.general, .pills, .agents, .voice, .shortcuts]
+    // The chat tab talks to Claude Code, the services and the voice assistant are gone:
+    // no Chat, Integrations or Voice pages.
+    static let notchPages: [HubPage] = [.general, .pills, .agents, .shortcuts]
     #endif
 
     /// The section of Settings this page shows, for the notch's pages.
@@ -130,7 +133,7 @@ extension HubPage {
 
 @MainActor
 final class HubRouter: ObservableObject {
-    @Published var page: HubPage = .dictation
+    @Published var page: HubPage = .general
 }
 
 /// Opens the Coucou Flow window: the history of the dictations, the Notetaker, the numbers, the
@@ -269,20 +272,24 @@ private struct HubSidebar: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
-                    HubSidebarHeader(text: "Flow")
-                    ForEach(HubPage.flowPages) { page in
-                        HubSidebarItem(page: page, selected: router.page == page) { router.page = page }
+                    if !HubPage.flowPages.isEmpty {
+                        HubSidebarHeader(text: "Flow")
+                        ForEach(HubPage.flowPages) { page in
+                            HubSidebarItem(page: page, selected: router.page == page) { router.page = page }
+                        }
                     }
                     HubSidebarHeader(text: String(localized: "hub.section.notch"))
-                        .padding(.top, 14)
+                        .padding(.top, HubPage.flowPages.isEmpty ? 0 : 14)
                     ForEach(HubPage.notchPages) { page in
                         HubSidebarItem(page: page, selected: router.page == page) { router.page = page }
                     }
                 }
             }
             .scrollIndicators(.never)
-            status
-                .padding(.top, 8)
+            if !HubPage.flowPages.isEmpty {   // the dictation status, only when Flow exists
+                status
+                    .padding(.top, 8)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 14)

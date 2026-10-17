@@ -68,11 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.target = self
             menu.addItem(item)
         }
-        add(String(localized: "hub.page.dictation"), #selector(openFlowHub))
-        add(String(localized: "hub.page.notes"), #selector(openNotes))
-        add(NoteTaker.shared.isRecording ? String(localized: "notes.stop") : String(localized: "hub.record-call"),
-            #selector(toggleCallRecording))
-        menu.addItem(.separator())
+        // No dictation, Notetaker or call recording in this build
         add(String(localized: "Open Coucou"), #selector(openIsland))
         add(NSLocalizedString("Settings…", comment: ""), #selector(openSettings))
         return menu
@@ -141,7 +137,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     #if !APPSTORE
     @objc private func openFlowHub() {
         if AppState.shared.mode == .expanded { islandController?.collapse() }
-        FlowHubController.shared.show(.dictation)
+        FlowHubController.shared.show(.general)
     }
     #endif
 
@@ -262,9 +258,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         islandController?.fsm.launch()
         HookServer.shared.start()
         #if !APPSTORE
-        _ = VoiceEngine.shared  // registers system observers; starts mic only if the user enabled voice
-        FlowDictation.shared.start()  // watches the dictation key only if Flow dictation is on
-        #endif
+        // This build has no voice assistant, Flow dictation or service integrations: make sure
+        // they stay off (they may have been on in the original app) and start none of them.
+        UserDefaults.standard.set(false, forKey: VoiceSettings.enabledKey)
+        UserDefaults.standard.set(false, forKey: FlowDictation.enabledKey)
+        #else
         N8nPoller.shared.start()
         VercelPoller.shared.start()
         ResendPoller.shared.start()
@@ -272,6 +270,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         StripePoller.shared.start()
         CalcomPoller.shared.start()
         NotionPoller.shared.start()
+        #endif
         NotificationCenter.default.addObserver(self, selector: #selector(openSettingsFromNotification(_:)),
                                                name: .openFullSettings, object: nil)
         // After the greeting ends, fly Mochi back to the desktop if it was there at last quit
@@ -294,10 +293,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = ShelfStore.shared
         _ = FocusTimer.shared
         _ = NotesStore.shared
-        MailController.shared.start()
-        #endif
+        #else
         CryptoController.shared.start()
         PortfolioController.shared.start()
+        #endif
     }
 }
 

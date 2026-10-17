@@ -51,7 +51,8 @@ struct ShortcutsSettingsView: View {
         #if APPSTORE
         ShortcutAction.allCases.filter { !$0.isNonAppStore }
         #else
-        ShortcutAction.allCases
+        // No voice assistant and no old chat to attach a window to in this build
+        ShortcutAction.allCases.filter { $0 != .talkToCoucou && $0 != .attachFrontWindow }
         #endif
     }
 
