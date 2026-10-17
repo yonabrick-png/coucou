@@ -11,6 +11,7 @@ import Combine
 @MainActor
 final class NotesStore: ObservableObject {
     static let shared = NotesStore()
+    nonisolated static let pillId = "integration_notes"
     nonisolated static let lifetime: TimeInterval = 24 * 3600
     nonisolated static let color = "#FBBF24"
     nonisolated private static let key = "coucou.notes"
@@ -51,7 +52,15 @@ final class NotesStore: ObservableObject {
         sweep = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in
             Task { @MainActor in NotesStore.shared.prune() }
         }
+        // Name the pill as soon as it's loaded
+        AppState.shared.$tasks
+            .map { $0.contains { $0.id == Self.pillId } }
+            .removeDuplicates()
+            .sink { [weak self] loaded in if loaded { self?.syncTaskName() } }
+            .store(in: &cancellables)
     }
+
+    private var cancellables = Set<AnyCancellable>()
 
     var pendingReminders: Int { notes.filter { $0.remindAt != nil && !$0.fired && !$0.done }.count }
 
@@ -138,7 +147,11 @@ final class NotesStore: ObservableObject {
         SoundEngine.shared.play("approval")
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
         NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.surprised)
-        NotificationCenter.default.post(name: .hookExpand, object: IslandView.notes)
+        // Open the notch on the Notes card, the ringing note glowing
+        if AppState.shared.tasks.contains(where: { $0.id == Self.pillId }) {
+            AppState.shared.setFocus(Self.pillId)
+        }
+        NotificationCenter.default.post(name: .hookExpand, object: IslandView.overview)
         scheduleNextReminder()
     }
 
@@ -146,6 +159,20 @@ final class NotesStore: ObservableObject {
 
     private func save() {
         if let data = try? JSONEncoder().encode(notes) { UserDefaults.standard.set(data, forKey: Self.key) }
+        syncTaskName()
+    }
+
+    /// The pill reads "🔔 17:30" when a reminder is coming, else "Notes · 3".
+    func syncTaskName() {
+        guard let idx = AppState.shared.tasks.firstIndex(where: { $0.id == Self.pillId }) else { return }
+        let base = PillCatalog.definition(for: Self.pillId)?.name ?? "Notes"
+        let next = notes.filter { !$0.fired && !$0.done }.compactMap(\.remindAt).min()
+        let open = notes.filter { !$0.done }.count
+        let name: String
+        if let next { name = "🔔 " + next.formatted(date: .omitted, time: .shortened) }
+        else if open > 0 { name = "\(base) · \(open)" }
+        else { name = base }
+        if AppState.shared.tasks[idx].name != name { AppState.shared.tasks[idx].name = name }
     }
 }
 #endif

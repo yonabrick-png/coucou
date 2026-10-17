@@ -709,7 +709,15 @@ final class AppState: ObservableObject {
 
     /// Toggle a catalog pill on/off.
     /// mainPillId: never toggleable (change via the Main picker first).
-    /// Max 4 non-main pills active at once.
+    /// Non-main pills active at once: 4, or 5 in the GitHub build (Timer, Music, Calendar,
+    /// Shelf, Notes) — the focused one sits in the card, the four others fill the grid.
+    #if !APPSTORE
+    static let maxIntegrations = 5
+    #else
+    static let maxIntegrations = 4
+    #endif
+
+    /// Max non-main pills active at once (see maxIntegrations).
     /// Switch the always-on workspace pill. Mirrors what the Settings Picker does.
     func setMainPill(_ id: String) {
         guard PillCatalog.available.contains(where: {
@@ -729,7 +737,7 @@ final class AppState: ObservableObject {
             tasks.removeAll { $0.id == id }
             if focusId == id { focusId = mainPillId }
         } else {
-            guard activeIntegrations.count < 4 else { return }
+            guard activeIntegrations.count < Self.maxIntegrations else { return }
             activeIntegrations.insert(id)
             if let def = PillCatalog.available.first(where: { $0.id == id }),
                !tasks.contains(where: { $0.id == id }) {

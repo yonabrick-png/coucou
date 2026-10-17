@@ -31,12 +31,6 @@ struct IslandViewContent: View {
             #else
             EmptyView()
             #endif
-        case .notes:
-            #if !APPSTORE
-            NotesView(state: state)
-            #else
-            EmptyView()
-            #endif
         case .searching: SearchingView(state: state)
         case .result:    ResultView(state: state)
         case .note:      NoteView(state: state)
@@ -321,6 +315,10 @@ struct OverviewView: View {
         case "integration_timer":
             #if !APPSTORE
             FocusTimer.shared.toggle()      // ↗ starts / pauses
+            #endif
+        case "integration_notes":
+            #if !APPSTORE
+            NotificationCenter.default.post(name: .notesFocusInput, object: nil)   // ↗ to write
             #endif
         case "integration_calendar":
             #if !APPSTORE
@@ -1916,7 +1914,7 @@ struct IntegrationCardView: View {
             return true  // nothing to install: the relay tags desktop sessions on its own
         case "integration_shelf":
             return true  // nothing to set up: drop files on the notch
-        case "integration_timer":
+        case "integration_timer", "integration_notes":
             return true  // nothing to set up
         case "integration_calendar":
             #if !APPSTORE
@@ -2210,6 +2208,11 @@ struct IntegrationCardView: View {
         } else if task.id == "integration_timer" {
             #if !APPSTORE
             FocusTimerCardView()
+                .transition(.opacity)
+            #endif
+        } else if task.id == "integration_notes" {
+            #if !APPSTORE
+            NotesCardView()
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {

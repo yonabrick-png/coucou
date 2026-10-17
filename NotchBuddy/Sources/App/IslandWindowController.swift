@@ -196,10 +196,15 @@ final class IslandWindowController: NSWindowController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newView in
                 guard let self else { return }
-                if newView == .prompt || newView == .notes {
+                if newView == .prompt {
                     self.islandPanel.makeKey()
                 }
             }
+
+        // A text field on a card (Notes) was clicked: the panel must become key to type in it
+        NotificationCenter.default.addObserver(forName: .islandWantsKeyboard, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.islandPanel.makeKey() }
+        }
         // Screen choice changed in Settings: move right away (explicit user action).
         displaySubscription = state.$islandDisplay
             .dropFirst()
@@ -2009,6 +2014,7 @@ extension Notification.Name {
     static let islandActivateCardSelection = Notification.Name("notchBuddy.islandActivateCardSelection")
     static let openFullSettings    = Notification.Name("notchBuddy.openFullSettings")
     static let hookReveal       = Notification.Name("notchBuddy.hookReveal")
+    static let islandWantsKeyboard = Notification.Name("notchBuddy.islandWantsKeyboard")
     static let musicReveal      = Notification.Name("notchBuddy.musicReveal")
     // Greeting ↔ IslandWindowController
     static let greetComplete    = Notification.Name("notchBuddy.greetComplete")

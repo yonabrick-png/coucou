@@ -1,234 +1,153 @@
 #if !APPSTORE
 import SwiftUI
 
-// MARK: - Notes tab (GitHub build only)
+// MARK: - Notes card (overview left card, GitHub build only)
 
-/// Write a note (Return), optionally with a reminder (🔔); tick it off with a satisfying check.
-/// Everything leaves after a day unless pinned.
-struct NotesView: View {
-    @ObservedObject var state: AppState
+/// Like the Timer: a pill whose card holds everything. Type a note (Return), 🔔 to make it a
+/// reminder, tick it off with a satisfying check. Everything leaves after a day unless pinned.
+struct NotesCardView: View {
     @ObservedObject private var store = NotesStore.shared
 
     @State private var text = ""
-    @State private var choosingReminder = false
     @State private var remindAt: Date?
-    @State private var customTime = Date().addingTimeInterval(3600)
     @FocusState private var focused: Bool
 
     private let yellow = Color(hex: NotesStore.color)
 
-    var body: some View {
-        ZStack(alignment: .topLeading) {
-            CardBackground(wash: nil)
-            VStack(alignment: .leading, spacing: 8) {
-                header
-                inputBar
-                if choosingReminder { reminderChooser.transition(.move(edge: .top).combined(with: .opacity)) }
-                list
-            }
-            .padding(.leading, 84)
-            .padding(.trailing, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 10)
-        }
-        .padding(.bottom, 10)
-        .onAppear {
-            store.prune()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { focused = true }
-        }
-        .onExitCommand {
-            if choosingReminder { withAnimation { choosingReminder = false } }
-        }
+    /// Open notes first (newest on top), done ones after.
+    private var ordered: [NotesStore.Note] {
+        store.notes.filter { !$0.done } + store.notes.filter(\.done)
     }
 
-    // MARK: Header
-
-    private var header: some View {
-        HStack(spacing: 6) {
-            Circle().fill(yellow).frame(width: 7, height: 7)
-            Text("Notes")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color(hex: "#F5F6F8"))
-            if !store.notes.isEmpty {
-                Text("\(store.notes.filter { !$0.done }.count)")
-                    .font(.system(size: 11).monospacedDigit())
-                    .foregroundColor(Color(hex: "#8E939C"))
-            }
-            if store.pendingReminders > 0 {
-                HStack(spacing: 2) {
-                    Image(systemName: "bell.fill").font(.system(size: 8))
-                    Text("\(store.pendingReminders)").font(.system(size: 10, weight: .semibold).monospacedDigit())
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            inputBar
+            if store.notes.isEmpty {
+                Text("Write anything: it stays a day. 🔔 to be reminded.")
+                    .font(.system(size: 10.5))
+                    .foregroundColor(Color(hex: "#6B7079"))
+                    .padding(.leading, 4)
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            ForEach(ordered) { note in
+                                CompactNoteRow(note: note, ringing: store.ringing == note.id, accent: yellow)
+                                    .id(note.id)
+                                    .transition(.asymmetric(insertion: .move(edge: .top).combined(with: .opacity),
+                                                            removal: .opacity.combined(with: .scale(scale: 0.9))))
+                            }
+                        }
+                        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: store.notes)
+                    }
+                    .frame(maxHeight: 54)
+                    .onAppear { if let r = store.ringing { proxy.scrollTo(r, anchor: .center) } }
+                    .onChange(of: store.ringing) { _, r in
+                        if let r { withAnimation { proxy.scrollTo(r, anchor: .center) } }
+                    }
                 }
-                .foregroundColor(yellow)
-                .padding(.horizontal, 5).padding(.vertical, 1)
-                .background(Capsule().fill(yellow.opacity(0.15)))
-            }
-            Spacer(minLength: 4)
-            if store.notes.contains(where: { $0.done && !$0.pinned }) {
-                Button(String(localized: "Clear done")) {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { store.clearDone() }
-                }
-                .font(.system(size: 10.5, weight: .medium))
-                .foregroundColor(Color(hex: "#8E939C"))
-                .buttonStyle(.plain)
             }
         }
+        .padding(.leading, 108)
+        .padding(.trailing, 30)   // the ↗ button sits top-right
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .onAppear { store.prune() }
+        .onReceive(NotificationCenter.default.publisher(for: .notesFocusInput)) { _ in focusInput() }
     }
 
     // MARK: Input
 
     private var inputBar: some View {
-        HStack(spacing: 6) {
-            TextField(remindAt == nil ? String(localized: "Write a note…")
-                                      : String(localized: "What should I remind you?"),
+        HStack(spacing: 5) {
+            TextField(remindAt == nil ? String(localized: "Note or reminder…")
+                                      : String(localized: "Remind me to…"),
                       text: $text)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
+                .font(.system(size: 12))
                 .focused($focused)
                 .onSubmit(add)
 
             if let remindAt {
                 Button { withAnimation(.snappy) { self.remindAt = nil } } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: "bell.fill").font(.system(size: 8.5))
-                        Text(Self.when(remindAt)).font(.system(size: 10.5, weight: .semibold))
-                        Image(systemName: "xmark").font(.system(size: 7, weight: .bold))
+                    HStack(spacing: 2) {
+                        Image(systemName: "bell.fill").font(.system(size: 7.5))
+                        Text(Self.when(remindAt)).font(.system(size: 9.5, weight: .semibold))
                     }
                     .foregroundColor(Color(hex: "#0E0F11"))
-                    .padding(.horizontal, 7)
-                    .frame(height: 20)
+                    .padding(.horizontal, 5)
+                    .frame(height: 16)
                     .background(Capsule().fill(yellow))
                 }
                 .buttonStyle(NowPlayingPressStyle())
                 .help(String(localized: "Remove the reminder"))
                 .transition(.scale.combined(with: .opacity))
             } else {
-                Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { choosingReminder.toggle() } } label: {
-                    Image(systemName: choosingReminder ? "bell.fill" : "bell")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(choosingReminder ? yellow : Color(hex: "#8E939C"))
-                        .frame(width: 22, height: 22)
-                        .contentShape(Rectangle())
+                Menu {
+                    Section(String(localized: "Remind me")) {
+                        Button(String(localized: "In 15 minutes")) { pick(minutes: 15) }
+                        Button(String(localized: "In 30 minutes")) { pick(minutes: 30) }
+                        Button(String(localized: "In 1 hour"))     { pick(minutes: 60) }
+                        Button(String(localized: "In 3 hours"))    { pick(minutes: 180) }
+                    }
+                    Divider()
+                    Button(String(localized: "Tonight at 20:00"))  { pick(Self.next(hour: 20)) }
+                    Button(String(localized: "Tomorrow at 9:00"))  { pick(Self.tomorrow(hour: 9)) }
+                } label: {
+                    Image(systemName: "bell")
+                        .font(.system(size: 10.5, weight: .semibold))
+                        .foregroundColor(Color(hex: "#8E939C"))
                 }
-                .buttonStyle(NowPlayingPressStyle())
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
                 .help(String(localized: "Add a reminder"))
             }
-
-            Button(action: add) {
-                Image(systemName: "arrow.up")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(Color(hex: "#0B0C0E"))
-            }
-            .buttonStyle(SendButtonStyle())
-            .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
         }
-        .padding(.horizontal, 10).padding(.vertical, 6)
+        .padding(.horizontal, 8).padding(.vertical, 4)
         .background(Color.white.opacity(0.07))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(yellow.opacity(focused ? 0.45 : 0), lineWidth: 1))
-        .simultaneousGesture(TapGesture().onEnded { focused = true })
-    }
-
-    private var reminderChooser: some View {
-        HStack(spacing: 5) {
-            Text("Remind me")
-                .font(.system(size: 10.5))
-                .foregroundColor(Color(hex: "#8E939C"))
-            ForEach([(15, "15 min"), (30, "30 min"), (60, "1 h"), (180, "3 h")], id: \.0) { mins, label in
-                chip(label) { pick(Date().addingTimeInterval(TimeInterval(mins * 60))) }
-            }
-            Text("or at")
-                .font(.system(size: 10.5))
-                .foregroundColor(Color(hex: "#8E939C"))
-            DatePicker("", selection: $customTime, displayedComponents: .hourAndMinute)
-                .labelsHidden()
-                .datePickerStyle(.field)
-                .frame(width: 70)
-                .controlSize(.small)
-            chip(String(localized: "Set")) { pick(Self.nextOccurrence(of: customTime)) }
-        }
-    }
-
-    private func chip(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(size: 10.5, weight: .semibold))
-                .foregroundColor(yellow.lighter(by: 0.2))
-                .padding(.horizontal, 8)
-                .frame(height: 20)
-                .background(Capsule().fill(yellow.opacity(0.15)))
-                .overlay(Capsule().stroke(yellow.opacity(0.35), lineWidth: 1))
-        }
-        .buttonStyle(NowPlayingPressStyle())
-    }
-
-    // MARK: List
-
-    @ViewBuilder private var list: some View {
-        if store.notes.isEmpty {
-            VStack(spacing: 6) {
-                Spacer(minLength: 0)
-                Image(systemName: "note.text")
-                    .font(.system(size: 20))
-                    .foregroundColor(yellow.opacity(0.7))
-                Text("Write anything. It stays here for a day.")
-                    .font(.system(size: 11.5))
-                    .foregroundColor(Color(hex: "#8E939C"))
-                Text("Tap 🔔 to be reminded at a time.")
-                    .font(.system(size: 10.5))
-                    .foregroundColor(Color(hex: "#6B7079"))
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ForEach(store.notes) { note in
-                            NoteRow(note: note, ringing: store.ringing == note.id, accent: yellow)
-                                .id(note.id)
-                                .transition(.asymmetric(insertion: .move(edge: .top).combined(with: .opacity),
-                                                        removal: .opacity.combined(with: .scale(scale: 0.9))))
-                        }
-                    }
-                    .padding(.vertical, 2)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.8), value: store.notes)
-                }
-                .onAppear { if let r = store.ringing { proxy.scrollTo(r, anchor: .center) } }
-                .onChange(of: store.ringing) { _, r in
-                    if let r { withAnimation { proxy.scrollTo(r, anchor: .center) } }
-                }
-            }
-        }
+        .clipShape(RoundedRectangle(cornerRadius: 9))
+        .overlay(RoundedRectangle(cornerRadius: 9).stroke(yellow.opacity(focused ? 0.45 : 0), lineWidth: 1))
+        .simultaneousGesture(TapGesture().onEnded { focusInput() })
     }
 
     // MARK: Actions
 
+    /// The notch panel doesn't take the keyboard on its own: ask for it, then focus.
+    private func focusInput() {
+        NotificationCenter.default.post(name: .islandWantsKeyboard, object: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { focused = true }
+    }
+
     private func add() {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { return }
-        store.add(t, remindAt: remindAt)
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { store.add(t, remindAt: remindAt) }
         text = ""
-        withAnimation(.snappy) { remindAt = nil; choosingReminder = false }
+        withAnimation(.snappy) { remindAt = nil }
         focused = true
     }
+
+    private func pick(minutes: Int) { pick(Date().addingTimeInterval(TimeInterval(minutes * 60))) }
 
     private func pick(_ date: Date) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            remindAt = date
-            choosingReminder = false
-        }
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { remindAt = date }
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
-        focused = true
+        focusInput()
     }
 
-    /// A picked clock time that has already passed today means tomorrow.
-    private static func nextOccurrence(of time: Date) -> Date {
+    /// Today at `hour`, or tomorrow if that's already past.
+    private static func next(hour: Int) -> Date {
         let cal = Calendar.current
-        let hm = cal.dateComponents([.hour, .minute], from: time)
         let now = Date()
-        guard let today = cal.date(bySettingHour: hm.hour ?? 0, minute: hm.minute ?? 0, second: 0, of: now) else { return time }
+        let today = cal.date(bySettingHour: hour, minute: 0, second: 0, of: now) ?? now
         return today > now ? today : (cal.date(byAdding: .day, value: 1, to: today) ?? today)
+    }
+
+    private static func tomorrow(hour: Int) -> Date {
+        let cal = Calendar.current
+        let day = cal.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        return cal.date(bySettingHour: hour, minute: 0, second: 0, of: day) ?? day
     }
 
     /// "17:30" today, "tmrw 9:00" tomorrow.
@@ -238,9 +157,14 @@ struct NotesView: View {
     }
 }
 
+extension Notification.Name {
+    /// ↗ on the Notes card: put the cursor in its box.
+    static let notesFocusInput = Notification.Name("notchBuddy.notesFocusInput")
+}
+
 // MARK: - Row
 
-struct NoteRow: View {
+struct CompactNoteRow: View {
     let note: NotesStore.Note
     let ringing: Bool
     let accent: Color
@@ -248,44 +172,46 @@ struct NoteRow: View {
     @State private var glow = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 9) {
+        HStack(alignment: .center, spacing: 7) {
             CheckCircle(done: note.done, accent: accent) {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) { NotesStore.shared.toggleDone(note) }
             }
-            .padding(.top, 1)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(note.text)
-                    .font(.system(size: 12.5))
-                    .foregroundColor(note.done ? Color(hex: "#6B7079") : Color(hex: "#F1F2F4"))
-                    .strikethrough(note.done, color: Color(hex: "#6B7079"))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .textSelection(.enabled)
-                TimelineView(.periodic(from: .now, by: 60)) { context in
-                    meta(now: context.date)
-                }
-            }
+            Text(note.text)
+                .font(.system(size: 11.5))
+                .foregroundColor(note.done ? Color(hex: "#6B7079") : Color(hex: "#F1F2F4"))
+                .strikethrough(note.done, color: Color(hex: "#6B7079"))
+                .lineLimit(1).truncationMode(.tail)
+                .layoutPriority(1)
             Spacer(minLength: 4)
             if hovered {
                 Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { NotesStore.shared.remove(note) } } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(.system(size: 7, weight: .bold))
                         .foregroundColor(Color(hex: "#8E939C"))
-                        .frame(width: 16, height: 16)
+                        .frame(width: 14, height: 14)
                         .background(Circle().fill(Color.white.opacity(0.08)))
                 }
                 .buttonStyle(.plain)
                 .transition(.opacity)
+            } else if let at = note.remindAt, !note.done {
+                HStack(spacing: 2) {
+                    Image(systemName: note.fired ? "bell.badge.fill" : "bell.fill").font(.system(size: 7.5))
+                    Text(NotesCardView.when(at)).font(.system(size: 9.5, weight: .medium).monospacedDigit())
+                }
+                .foregroundColor(note.fired ? accent : Color(hex: "#8E939C"))
+            } else if note.pinned {
+                Image(systemName: "pin.fill").font(.system(size: 7.5)).foregroundColor(Color(hex: "#6B7079"))
             }
         }
-        .padding(.horizontal, 8).padding(.vertical, 6)
-        .background(RoundedRectangle(cornerRadius: 9)
-            .fill(ringing ? accent.opacity(glow ? 0.22 : 0.12) : Color.white.opacity(hovered ? 0.07 : 0.04)))
-        .overlay(RoundedRectangle(cornerRadius: 9).stroke(ringing ? accent.opacity(0.6) : Color.clear, lineWidth: 1))
+        .padding(.horizontal, 6).padding(.vertical, 3)
+        .background(RoundedRectangle(cornerRadius: 7)
+            .fill(ringing ? accent.opacity(glow ? 0.24 : 0.12) : Color.white.opacity(hovered ? 0.06 : 0)))
+        .overlay(RoundedRectangle(cornerRadius: 7).stroke(ringing ? accent.opacity(0.6) : Color.clear, lineWidth: 1))
         .contentShape(Rectangle())
         .onHover { h in withAnimation(.easeOut(duration: 0.12)) { hovered = h } }
         .onAppear { if ringing { startGlow() } }
         .onChange(of: ringing) { _, r in if r { startGlow() } else { glow = false } }
+        .help(helpText)
         .contextMenu {
             Button(note.done ? String(localized: "Mark as not done") : String(localized: "Mark as done")) {
                 NotesStore.shared.toggleDone(note)
@@ -302,36 +228,14 @@ struct NoteRow: View {
         }
     }
 
+    private var helpText: String {
+        if note.pinned { return String(localized: "\(note.text) · pinned") }
+        let hours = max(1, Int(ceil(note.expires.timeIntervalSinceNow / 3600)))
+        return String(localized: "\(note.text) · leaves in \(hours) h")
+    }
+
     private func startGlow() {
         withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { glow = true }
-    }
-
-    @ViewBuilder private func meta(now: Date) -> some View {
-        HStack(spacing: 6) {
-            if let at = note.remindAt {
-                HStack(spacing: 3) {
-                    Image(systemName: note.fired ? "bell.badge.fill" : "bell.fill").font(.system(size: 8))
-                    Text(reminderText(at, now: now)).font(.system(size: 10, weight: .medium).monospacedDigit())
-                }
-                .foregroundColor(note.fired && !note.done ? accent : Color(hex: "#8E939C"))
-            }
-            Text(note.pinned ? String(localized: "pinned") : leftText(now: now))
-                .font(.system(size: 10))
-                .foregroundColor(Color(hex: "#4A4F57"))
-        }
-    }
-
-    private func reminderText(_ at: Date, now: Date) -> String {
-        let time = NotesView.when(at)
-        if note.fired || at <= now { return time }
-        let mins = Int(ceil(at.timeIntervalSince(now) / 60))
-        return mins < 60 ? String(localized: "\(time) · in \(mins)m")
-                         : String(localized: "\(time) · in \(mins / 60)h \(mins % 60)m")
-    }
-
-    private func leftText(now: Date) -> String {
-        let hours = Int(ceil(note.expires.timeIntervalSince(now) / 3600))
-        return hours <= 1 ? String(localized: "leaves within the hour") : String(localized: "\(hours)h left")
     }
 }
 
@@ -351,12 +255,12 @@ struct CheckCircle: View {
                     .fill(accent)
                     .scaleEffect(done ? 1 : 0.001)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 8, weight: .heavy))
+                    .font(.system(size: 7.5, weight: .heavy))
                     .foregroundColor(Color(hex: "#0E0F11"))
                     .scaleEffect(done ? 1 : 0.2)
                     .opacity(done ? 1 : 0)
             }
-            .frame(width: 16, height: 16)
+            .frame(width: 14, height: 14)
             .contentShape(Circle())
         }
         .buttonStyle(NowPlayingPressStyle())

@@ -547,9 +547,7 @@ struct IslandHeader: View {
                     #endif
                 })
                 #if !APPSTORE
-                TabButton(icon: "calendar", view: .calendar, state: state)
-                TabButton(icon: "note.text", view: .notes, state: state)
-                #endif
+                TabButton(icon: "calendar", view: .calendar, state: state)                #endif
                 TabButton(icon: "plus", view: .upload, state: state)
             }
             .padding(.leading, 14)

@@ -529,9 +529,15 @@ struct SettingsView: View {
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
 
+                #if !APPSTORE
+                Text(verbatim: "\(state.activeIntegrations.count)/\(AppState.maxIntegrations) slots used")
+                    .font(.system(size: 11))
+                    .foregroundColor(state.activeIntegrations.count >= AppState.maxIntegrations ? .orange : .secondary)
+                #else
                 Text(String(format: String(localized: "settings.slots-used %lld"), Int64(state.activeIntegrations.count)))
                     .font(.system(size: 11))
                     .foregroundColor(state.activeIntegrations.count >= 4 ? .orange : .secondary)
+                #endif
 
                 Picker(String(localized: "settings.main-pill"), selection: $state.mainPillId) {
                     ForEach(PillCatalog.available.filter { $0.category == .workspace && !$0.comingSoon }, id: \.id) { def in
@@ -2155,7 +2161,7 @@ struct SettingsView: View {
     private func pillRow(_ def: PillDefinition) -> some View {
         let isMain = def.id == state.mainPillId
         let isOn   = state.activeIntegrations.contains(def.id)
-        let atMax  = state.activeIntegrations.count >= 4 && !isOn && !isMain
+        let atMax  = state.activeIntegrations.count >= AppState.maxIntegrations && !isOn && !isMain
         let hint: String? = {
             if isMain { return nil }
             if def.comingSoon { return String(localized: "Coming soon") }
