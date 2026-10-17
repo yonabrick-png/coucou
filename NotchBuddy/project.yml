@@ -26,6 +26,9 @@ configs:
   DebugCloud: debug
   Release: release
   ReleaseCloud: release
+  # notch-plus fork: optimized, signed with Yona's own Apple Development certificate,
+  # no iCloud / iPhone link (those need the upstream developer's profile).
+  ReleaseLocal: release
 
 settings:
   base:
@@ -51,6 +54,14 @@ settings:
       CODE_SIGN_IDENTITY: "Developer ID Application"
       DEVELOPMENT_TEAM: 256AUJ9555
       OTHER_CODE_SIGN_FLAGS: "--timestamp"
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+      CODE_SIGN_ENTITLEMENTS: Resources/Coucou.entitlements
+    ReleaseLocal:
+      CODE_SIGNING_REQUIRED: YES
+      CODE_SIGNING_ALLOWED: YES
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGN_IDENTITY: "Apple Development"
+      DEVELOPMENT_TEAM: DVRP3XTT4H
       CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
       CODE_SIGN_ENTITLEMENTS: Resources/Coucou.entitlements
     ReleaseCloud:
@@ -189,6 +200,10 @@ targets:
           CODE_SIGN_ENTITLEMENTS: Resources/CoucouReleaseCloud.entitlements
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: PHONE_LINK
           PROVISIONING_PROFILE_SPECIFIER: "Coucou Developer ID"
+        # notch-plus: Yona's signed build, no PHONE_LINK, plain entitlements
+        ReleaseLocal:
+          CODE_SIGN_ENTITLEMENTS: Resources/Coucou.entitlements
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: ""
     dependencies:
       - package: FluidAudio
     postBuildScripts:
