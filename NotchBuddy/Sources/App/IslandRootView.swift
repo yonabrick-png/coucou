@@ -548,6 +548,7 @@ struct IslandHeader: View {
                 })
                 #if !APPSTORE
                 TabButton(icon: "figure.run", view: .garmin, state: state)
+                TabButton(icon: "cloud.sun.fill", view: .weather, state: state)
                 #else
                 TabButton(icon: "plus", view: .upload, state: state)
                 #endif

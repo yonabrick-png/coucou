@@ -26,6 +26,19 @@ final class WeatherStore: NSObject, ObservableObject {
         let code: Int
     }
 
+    struct Day: Identifiable, Equatable {
+        var id: Date { date }
+        let date: Date
+        let code: Int
+        let high: Double
+        let low: Double
+        let rain: Int            // max precipitation probability %
+        let uv: Double
+        let wind: Double
+        let sunrise: Date?
+        let sunset: Date?
+    }
+
     struct Forecast: Equatable {
         let temp: Double
         let feels: Double
@@ -35,7 +48,8 @@ final class WeatherStore: NSObject, ObservableObject {
         let high: Double
         let low: Double
         let sunset: Date?
-        let hours: [Hour]          // from this hour on, ~36 h
+        let hours: [Hour]          // from this hour on, ~60 h
+        let days: [Day]            // today, tomorrow, the day after
         let fetched: Date
     }
 
@@ -54,11 +68,8 @@ final class WeatherStore: NSObject, ObservableObject {
         super.init()
         locator.delegate = self
         locator.desiredAccuracy = kCLLocationAccuracyKilometer
-        AppState.shared.$activeIntegrations
-            .map { $0.contains(Self.pillId) }
-            .removeDuplicates()
-            .sink { [weak self] active in active ? self?.start() : self?.stop() }
-            .store(in: &cancellables)
+        // The ☁️ tab needs no pill: keep the forecast fresh (one small request every 30 min)
+        start()
         AppState.shared.$tasks
             .map { $0.contains { $0.id == Self.pillId } }
             .removeDuplicates()
@@ -114,9 +125,9 @@ final class WeatherStore: NSObject, ObservableObject {
             .init(name: "longitude", value: String(format: "%.3f", c.longitude)),
             .init(name: "current", value: "temperature_2m,apparent_temperature,weather_code,wind_speed_10m,is_day"),
             .init(name: "hourly", value: "temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m,uv_index"),
-            .init(name: "daily", value: "temperature_2m_max,temperature_2m_min,sunrise,sunset"),
+            .init(name: "daily", value: "weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,uv_index_max,wind_speed_10m_max"),
             .init(name: "timezone", value: "auto"),
-            .init(name: "forecast_days", value: "2"),
+            .init(name: "forecast_days", value: "3"),
         ]
         guard let url = comps.url else { return }
         Task {
@@ -160,7 +171,20 @@ final class WeatherStore: NSObject, ObservableObject {
         let low = ((daily["temperature_2m_min"] as? [Any])?.first as? NSNumber)?.doubleValue ?? 0
         let sunsets = (daily["sunset"] as? [String] ?? []).compactMap { f.date(from: $0) }
         let sunrises = (daily["sunrise"] as? [String] ?? []).compactMap { f.date(from: $0) }
-        _ = sunrises
+
+        let dayFormat = DateFormatter()
+        dayFormat.dateFormat = "yyyy-MM-dd"
+        dayFormat.timeZone = TimeZone(secondsFromGMT: offset)
+        func dv(_ key: String, _ i: Int) -> Double { ((daily[key] as? [Any])?[i] as? NSNumber)?.doubleValue ?? 0 }
+        let days: [Day] = (daily["time"] as? [String] ?? []).enumerated().compactMap { i, t in
+            guard let date = dayFormat.date(from: t) else { return nil }
+            return Day(date: date, code: Int(dv("weather_code", i)),
+                       high: dv("temperature_2m_max", i), low: dv("temperature_2m_min", i),
+                       rain: Int(dv("precipitation_probability_max", i)), uv: dv("uv_index_max", i),
+                       wind: dv("wind_speed_10m_max", i),
+                       sunrise: i < sunrises.count ? sunrises[i] : nil,
+                       sunset: i < sunsets.count ? sunsets[i] : nil)
+        }
 
         return Forecast(
             temp: (cur["temperature_2m"] as? NSNumber)?.doubleValue ?? 0,
@@ -171,6 +195,7 @@ final class WeatherStore: NSObject, ObservableObject {
             high: high, low: low,
             sunset: sunsets.first,
             hours: hours,
+            days: days,
             fetched: now)
     }
 
@@ -179,21 +204,32 @@ final class WeatherStore: NSObject, ObservableObject {
     struct RunPick: Equatable { let hour: Hour; let tomorrow: Bool }
 
     /// The best daylight hour left today (from the next full hour to sunset), else tomorrow's.
-    var bestRun: RunPick? {
-        guard let f = forecast else { return nil }
+    var bestRun: RunPick? { runOptions.first }
+
+    /// The three best daylight hours, best first: today's remaining ones, or tomorrow's once
+    /// today's daylight is over.
+    var runOptions: [RunPick] {
+        guard let f = forecast else { return [] }
         let cal = Calendar.current
         let now = Date()
-        func daylight(_ h: Hour) -> Bool {
+        func daylight(_ h: Hour, sunset: Date?) -> Bool {
             let hour = cal.component(.hour, from: h.time)
+            if let sunset, h.time >= sunset { return false }
             return hour >= 6 && hour <= 19
         }
-        let sunset = f.sunset ?? cal.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
-        let today = f.hours.filter { $0.time > now && $0.time < sunset && cal.isDateInToday($0.time) && daylight($0) }
-        if let best = today.max(by: { Self.score($0) < Self.score($1) }) {
-            return RunPick(hour: best, tomorrow: false)
+        let todaySunset = f.days.first?.sunset ?? f.sunset
+        let today = f.hours.filter { $0.time > now && cal.isDateInToday($0.time) && daylight($0, sunset: todaySunset) }
+        let pool: [Hour]
+        let tomorrow: Bool
+        if today.isEmpty {
+            let sunset = f.days.dropFirst().first?.sunset
+            pool = f.hours.filter { cal.isDateInTomorrow($0.time) && daylight($0, sunset: sunset) }
+            tomorrow = true
+        } else {
+            pool = today
+            tomorrow = false
         }
-        let tomorrow = f.hours.filter { cal.isDateInTomorrow($0.time) && daylight($0) }
-        return tomorrow.max(by: { Self.score($0) < Self.score($1) }).map { RunPick(hour: $0, tomorrow: true) }
+        return pool.sorted { Self.score($0) > Self.score($1) }.prefix(3).map { RunPick(hour: $0, tomorrow: tomorrow) }
     }
 
     /// Higher is better: feels-like near 12–20 °C, dry, calm, gentle sun.

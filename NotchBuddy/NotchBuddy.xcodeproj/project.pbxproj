@@ -138,6 +138,7 @@
 		5A3DA40DB6C8161E6CB504C7 /* FlowSettingsBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8436291D94C826F1D9DA3130 /* FlowSettingsBox.swift */; };
 		5B9A00AFB0837731FA678E4E /* IslandStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */; };
 		5C6D0BC8C546718CAA82BF90 /* MusicController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F142FB3952B5F0639383047 /* MusicController.swift */; };
+		5F12007AA5B086686F520AA1 /* WeatherFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12C25F01001D4FC19FC5DC /* WeatherFullView.swift */; };
 		607E548D1DD274CD73FDC290 /* ColorHex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACB4350729C6513824D1ADF /* ColorHex.swift */; };
 		60E361FFE84C387E5E3ED1AA /* SoundEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE21C2B315D37AA70ED45E9 /* SoundEngine.swift */; };
 		60F734EEB13D98B4AD26AA28 /* GarminFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB46E35321C30493A02C715 /* GarminFullView.swift */; };
@@ -374,6 +375,7 @@
 		E4CCE0817B9C6C451C935247 /* FocusTimerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87278A28B2614BCC8543D997 /* FocusTimerViews.swift */; };
 		E51309D4B5D28E9B186A49EF /* CalendarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392746EB6E84FC2A28E8385C /* CalendarController.swift */; };
 		E5D08513CFEA5D5E6760ECA4 /* ConversationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A67DA3B8EEF063C44E07F7E /* ConversationContext.swift */; };
+		E663F3AB39185B2552C65F55 /* WeatherFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB12C25F01001D4FC19FC5DC /* WeatherFullView.swift */; };
 		E701BC8996229D08362CA732 /* ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF705275522F99CAE7E1429 /* ServiceStatus.swift */; };
 		E776C7D1DE5C62EA8D4BA3E3 /* FileDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3232F258523DD8D09B670363 /* FileDropView.swift */; };
 		E81575CE4433C6F88E424A8F /* LocalChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8790ACE9F73BD74640A0F20C /* LocalChat.swift */; };
@@ -655,6 +657,7 @@
 		FA02B08886939FF6FE0475DD /* IslandViewContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandViewContent.swift; sourceTree = "<group>"; };
 		FA51E5B140C20812641168EA /* ShortcutLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutLogic.swift; sourceTree = "<group>"; };
 		FADC1FE5696B1075932D0B7C /* InstructionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstructionRunner.swift; sourceTree = "<group>"; };
+		FB12C25F01001D4FC19FC5DC /* WeatherFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherFullView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -783,6 +786,7 @@
 				6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */,
 				F4A13AEE6E06F46CEC9D908C /* UserIdentity.swift */,
 				71718D1B87A39A4879DD2A9D /* VercelPoller.swift */,
+				FB12C25F01001D4FC19FC5DC /* WeatherFullView.swift */,
 				381C0A62960EA8D489AAB0A6 /* WeatherStore.swift */,
 				888B3E1420BCB6292BDC8117 /* WeeklyRecapView.swift */,
 				E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */,
@@ -1329,6 +1333,7 @@
 				C2212AA8BF5834B62308235B /* WakePhrase.swift in Sources */,
 				63B87D9E49F228ADCEC4C293 /* WakeSpotter.swift in Sources */,
 				4CA7948E8518229C04C6BE5A /* WakeWindowBackoff.swift in Sources */,
+				E663F3AB39185B2552C65F55 /* WeatherFullView.swift in Sources */,
 				B41B4EEE111A634F291C0FC5 /* WeatherStore.swift in Sources */,
 				01B96F947DF2BDC352E8526D /* WeeklyRecapView.swift in Sources */,
 				2875610F701376BD65573386 /* WindowContextCapture.swift in Sources */,
@@ -1568,6 +1573,7 @@
 				3451DB0668FAEEF09503D808 /* WakePhrase.swift in Sources */,
 				B5206E9D10AD77C0C24463AB /* WakeSpotter.swift in Sources */,
 				A0ED41FB1AC8845BE1E30A66 /* WakeWindowBackoff.swift in Sources */,
+				5F12007AA5B086686F520AA1 /* WeatherFullView.swift in Sources */,
 				BEFD615300AC249BA958D6C9 /* WeatherStore.swift in Sources */,
 				FB58020A389126865363C342 /* WeeklyRecapView.swift in Sources */,
 				2CC2E3B688B15BBEB3AE3BCE /* WindowContextCapture.swift in Sources */,
