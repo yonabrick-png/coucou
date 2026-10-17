@@ -310,8 +310,14 @@ struct ClaudeChatView: View {
         }
     }
 
-    /// A dropped file opens the chat with its path ready to mention.
+    /// A dropped file opens the chat with its path ready to mention; a note sent with
+    /// "Ask Claude" opens it with the note's text.
     private func prefillFromDrop() {
+        if let draft = ClaudeChatDraft.pending {
+            ClaudeChatDraft.pending = nil
+            text = draft
+            return
+        }
         guard case .file(_, let url?)? = state.promptContext else { return }
         if text.isEmpty { text = "@\(url.path) " }
         state.promptContext = nil

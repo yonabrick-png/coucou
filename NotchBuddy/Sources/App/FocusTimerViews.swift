@@ -5,6 +5,12 @@ import SwiftUI
 
 struct FocusTimerCardView: View {
     @ObservedObject private var timer = FocusTimer.shared
+    /// Apple Music playlists for the study-music picker (read when Music is open).
+    @State private var playlists: [String] = []
+    @State private var shortcutsReady = StudyFocus.shortcutsReady
+    @State private var dnd = StudyFocus.dndEnabled
+    @State private var playlist = StudyFocus.playlist
+    @State private var pauseOnRest = StudyFocus.pauseMusicOnRest
 
     private var accent: Color { Color(hex: timer.mode.colorHex) }
 
@@ -25,6 +31,39 @@ struct FocusTimerCardView: View {
         .padding(.trailing, 12)
         .padding(.top, 10)
         .frame(maxWidth: .infinity, alignment: .topLeading)
+        .contentShape(Rectangle())
+        .contextMenu { studyMenu }
+        .task {
+            await StudyFocus.refreshShortcuts(force: true)
+            shortcutsReady = StudyFocus.shortcutsReady
+            playlists = await MusicController.shared.playlistNames()
+        }
+    }
+
+    // MARK: Study options (right-click)
+
+    @ViewBuilder private var studyMenu: some View {
+        Section(String(localized: "While studying")) {
+            if shortcutsReady {
+                Toggle(String(localized: "Turn on Do Not Disturb"), isOn: Binding(
+                    get: { dnd }, set: { dnd = $0; StudyFocus.dndEnabled = $0 }))
+            } else {
+                Button(String(localized: "Set up Do Not Disturb… (needs 2 shortcuts)")) { StudyFocus.openShortcutsApp() }
+            }
+            Menu(String(localized: "Focus music: \(playlist ?? String(localized: "none"))")) {
+                Button(String(localized: "No music")) { playlist = nil; StudyFocus.playlist = nil }
+                if playlists.isEmpty {
+                    Button(String(localized: "Open Music to pick a playlist")) { MusicController.shared.openMusic() }
+                } else {
+                    Divider()
+                    ForEach(playlists, id: \.self) { name in
+                        Button(name) { playlist = name; StudyFocus.playlist = name }
+                    }
+                }
+            }
+            Toggle(String(localized: "Pause the music on breaks"), isOn: Binding(
+                get: { pauseOnRest }, set: { pauseOnRest = $0; StudyFocus.pauseMusicOnRest = $0 }))
+        }
     }
 
     // MARK: Pieces
@@ -53,6 +92,15 @@ struct FocusTimerCardView: View {
 
     @ViewBuilder private var statusLine: some View {
         switch timer.phase {
+        case .idle where timer.suggestion != nil:
+            // A study event just started in the calendar
+            HStack(spacing: 4) {
+                Image(systemName: "calendar").font(.system(size: 9, weight: .semibold))
+                Text(timer.suggestion ?? "")
+                    .font(.system(size: 11, weight: .semibold))
+                    .lineLimit(1).truncationMode(.tail)
+            }
+            .foregroundColor(accent.lighter(by: 0.2))
         case .idle:
             HStack(spacing: 6) {
                 stepButton("minus") { timer.adjust(up: false) }

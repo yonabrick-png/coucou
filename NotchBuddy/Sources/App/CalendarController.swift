@@ -125,6 +125,31 @@ final class CalendarController: ObservableObject {
         let live = events.filter { $0.end > now }
         if live != events { events = live }
         syncTaskName()
+        offerStudyIfStarting(now: now)
+    }
+
+    // MARK: Study events → timer
+
+    /// Words that make an event a study session (English and Hebrew).
+    nonisolated private static let studyWords = [
+        "study", "studying", "homework", "revision", "revise", "exam", "test", "quiz", "learn",
+        "לימוד", "ללמוד", "שיעורי בית", "מבחן", "בוחן", "חזרה",
+    ]
+    private var offeredStudyIds: Set<String> = []
+
+    nonisolated static func isStudy(_ title: String) -> Bool {
+        let t = title.lowercased()
+        return studyWords.contains { t.contains($0) }
+    }
+
+    /// A study event that began in the last two minutes gets the timer ready, once.
+    private func offerStudyIfStarting(now: Date) {
+        guard let e = events.first(where: {
+            !$0.isAllDay && $0.start <= now && now.timeIntervalSince($0.start) < 120
+                && !offeredStudyIds.contains($0.id) && Self.isStudy($0.title)
+        }) else { return }
+        offeredStudyIds.insert(e.id)
+        FocusTimer.shared.offerStudy(for: e.title)
     }
 
     // MARK: Reading

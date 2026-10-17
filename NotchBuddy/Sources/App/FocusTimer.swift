@@ -111,13 +111,30 @@ final class FocusTimer: ObservableObject {
 
     func start() {
         if phase == .finished { finishedMode = nil }
+        suggestion = nil
         duration = TimeInterval(minutes(for: mode) * 60)
         endDate = Date().addingTimeInterval(duration)
         pausedRemaining = nil
         phase = .running
         scheduleFinish()
         feedback(sound: "pop")
+        if mode == .study { StudyFocus.studyStarted() }
         save()
+    }
+
+    /// A study event just started in the calendar: get Study ready and say so.
+    /// Never interrupts a timer that's already running or paused.
+    @Published private(set) var suggestion: String?
+
+    func offerStudy(for title: String) {
+        guard phase == .idle || phase == .finished else { return }
+        if mode != .study { setMode(.study) }
+        suggestion = title
+        SoundEngine.shared.play("peek")
+        if AppState.shared.tasks.contains(where: { $0.id == Self.pillId }) {
+            AppState.shared.setFocus(Self.pillId)
+        }
+        NotificationCenter.default.post(name: .hookExpand, object: IslandView.overview)
     }
 
     func pause() {
@@ -142,6 +159,8 @@ final class FocusTimer: ObservableObject {
 
     /// Back to a full, stopped timer in the same mode.
     func reset() {
+        if mode == .study && (phase == .running || phase == .paused) { StudyFocus.studyStopped(resting: false) }
+        suggestion = nil
         finishTask?.cancel()
         endDate = nil
         pausedRemaining = nil
@@ -154,6 +173,8 @@ final class FocusTimer: ObservableObject {
 
     func setMode(_ new: Mode) {
         guard new != mode || phase == .finished else { return }
+        if mode == .study && (phase == .running || phase == .paused) { StudyFocus.studyStopped(resting: false) }
+        if new != .study { suggestion = nil }
         finishTask?.cancel()
         mode = new
         endDate = nil
@@ -198,7 +219,10 @@ final class FocusTimer: ObservableObject {
         phase = .finished
         finishedMode = done
         endDate = nil
-        if done == .study { bumpStudies() }
+        if done == .study {
+            bumpStudies()
+            StudyFocus.studyStopped(resting: true)   // Do Not Disturb off, music paused for the break
+        }
 
         // The celebration
         SoundEngine.shared.play(done == .study ? "proud" : "finish")

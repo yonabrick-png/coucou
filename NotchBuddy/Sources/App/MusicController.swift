@@ -490,6 +490,14 @@ final class MusicController: ObservableObject {
         return false
     }
 
+    /// Names of your own playlists (for the study playlist picker). Only asks Music when it runs.
+    func playlistNames() async -> [String] {
+        guard isMusicRunning() else { return [] }
+        let result = await runAppleScript(#"tell application id "com.apple.Music" to get name of user playlists"#)
+        guard case .success(let values) = result else { return [] }
+        return values.map(\.text).filter { !$0.isEmpty }
+    }
+
     func openMusic() {
         if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == Self.bundleId }) {
             app.activate(options: .activateIgnoringOtherApps)
