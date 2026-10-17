@@ -111,8 +111,8 @@ final class GarminStore: ObservableObject {
             Task { @MainActor in
                 let s = GarminStore.shared
                 s.refresh()
-                // Keep the pill current through the day: a fetch when the data is 3 h old
-                if AppState.shared.activeIntegrations.contains(GarminStore.pillId) { s.fetchIfStale() }
+                // Keep the numbers current through the day: a fetch when the data is 3 h old
+                s.fetchIfStale()
             }
         }
         AppState.shared.$tasks

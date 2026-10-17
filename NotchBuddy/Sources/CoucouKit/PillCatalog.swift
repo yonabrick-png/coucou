@@ -162,7 +162,7 @@ enum PillCatalog {
         "integration_shelf",
         "integration_timer",
         "integration_notes",
-        "integration_garmin",
+        // Garmin lives in its own 🏃 tab (GarminFullView), not as a home pill
     ]
 
     /// Default ID for the always-on main workspace pill.
