@@ -209,6 +209,14 @@ final class IslandStateMachine {
         schedulePetitHide()
     }
 
+    /// A quick pop-up (volume, brightness, battery…) that revealed the island from hidden is
+    /// done: fold it right back instead of leaving it compact for a minute.
+    func hideAfterPopup() {
+        guard state == .petit, isPointerInside?() != true, !(isHeldOpen?() ?? false) else { return }
+        cancelTimers()
+        transition(to: .hidden)
+    }
+
     // MARK: – Timers
 
     private func schedulePetitHide() {

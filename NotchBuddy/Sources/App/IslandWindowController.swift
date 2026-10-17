@@ -882,6 +882,21 @@ final class IslandWindowController: NSWindowController {
             self.fsm.reveal()
         }
 
+        // A pop-up (volume, brightness, battery…) that opened the island is done: fold it back
+        NotificationCenter.default.addObserver(forName: .islandPopupDone, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.fsm.hideAfterPopup() }
+        }
+
+        // A pop-up wants the compact island, quietly (no peek sound)
+        NotificationCenter.default.addObserver(forName: .islandPopupReveal, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.silentNextReveal = true
+                self.fsm.reveal()
+                self.silentNextReveal = false
+            }
+        }
+
         // Music started playing: reveal silently (no peek sound)
         NotificationCenter.default.addObserver(forName: .musicReveal, object: nil, queue: .main) { [weak self] _ in
             guard let self else { return }
@@ -2023,6 +2038,8 @@ extension Notification.Name {
     static let openFullSettings    = Notification.Name("notchBuddy.openFullSettings")
     static let hookReveal       = Notification.Name("notchBuddy.hookReveal")
     static let islandWantsKeyboard = Notification.Name("notchBuddy.islandWantsKeyboard")
+    static let islandPopupReveal   = Notification.Name("notchBuddy.islandPopupReveal")
+    static let islandPopupDone     = Notification.Name("notchBuddy.islandPopupDone")
     static let musicReveal      = Notification.Name("notchBuddy.musicReveal")
     // Greeting ↔ IslandWindowController
     static let greetComplete    = Notification.Name("notchBuddy.greetComplete")

@@ -13,16 +13,21 @@ final class DeviceHUD: ObservableObject {
     static let shared = DeviceHUD()
 
     struct HUD: Equatable {
-        let id = UUID()
+        /// Same id = the same pop-up updating (volume steps), so it doesn't re-appear each time.
+        var id: String = UUID().uuidString
         let icon: String
         let value: String
         let tint: String
         let detail: String
+        /// 0…1 for a level bar (volume, brightness); nil for a plain value.
+        var level: Double? = nil
     }
 
     @Published private(set) var current: HUD?
 
     private var hideTask: Task<Void, Never>?
+    /// The pop-up opened a hidden island: fold it back when it's done.
+    private var revealedFromHidden = false
     private var lastOnAC: Bool?
     private var warnedLevels: Set<Int> = []
     private let bluetooth = BluetoothWatcher()
@@ -38,13 +43,19 @@ final class DeviceHUD: ObservableObject {
     }
 
     func show(_ hud: HUD, for seconds: Double = 4) {
-        current = hud
-        NotificationCenter.default.post(name: .hookReveal, object: nil)
+        if current == nil { revealedFromHidden = AppState.shared.mode == .hidden }
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { current = hud }
+        NotificationCenter.default.post(name: .islandPopupReveal, object: nil)
         hideTask?.cancel()
         hideTask = Task {
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
             withAnimation(.easeOut(duration: 0.3)) { self.current = nil }
+            if self.revealedFromHidden {
+                self.revealedFromHidden = false
+                try? await Task.sleep(for: .milliseconds(250))
+                NotificationCenter.default.post(name: .islandPopupDone, object: nil)
+            }
         }
     }
 
@@ -158,16 +169,29 @@ struct CompactDeviceHUD: View {
     let hud: DeviceHUD.HUD
 
     var body: some View {
-        VStack(spacing: 1) {
+        VStack(spacing: 2) {
             Image(systemName: hud.icon)
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundColor(Color(hex: hud.tint))
-                .symbolEffect(.pulse, options: .repeat(2))
-            Text(hud.value)
-                .font(.system(size: 9.5, weight: .bold, design: .rounded).monospacedDigit())
-                .foregroundColor(Color(hex: "#F5F6F8"))
-                .lineLimit(1)
-                .fixedSize()
+                .contentTransition(.symbolEffect(.replace))
+            if let level = hud.level {
+                // Level bar: fills smoothly as the keys repeat
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.18))
+                    Capsule()
+                        .fill(Color(hex: hud.tint))
+                        .frame(width: max(2, 26 * level))
+                        .shadow(color: Color(hex: hud.tint).opacity(0.6), radius: 2)
+                }
+                .frame(width: 26, height: 4)
+                .animation(.spring(response: 0.22, dampingFraction: 0.75), value: level)
+            } else {
+                Text(hud.value)
+                    .font(.system(size: 9.5, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundColor(Color(hex: "#F5F6F8"))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
         }
         .frame(width: 32, height: 28)
         .help(hud.detail)

@@ -163,6 +163,8 @@ targets:
         NSCalendarsFullAccessUsageDescription: "Coucou shows your next events and their countdown in the notch."
         NSCalendarsUsageDescription: "Coucou shows your next events and their countdown in the notch."
         NSBluetoothAlwaysUsageDescription: "Coucou shows your headphones' battery in the notch when they connect."
+        NSLocationUsageDescription: "Coucou shows the weather where you are and the best time to go for a run."
+        NSLocationWhenInUseUsageDescription: "Coucou shows the weather where you are and the best time to go for a run."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         CFBundleLocalizations:

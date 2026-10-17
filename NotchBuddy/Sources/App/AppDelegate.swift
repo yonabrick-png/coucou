@@ -295,6 +295,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = NotesStore.shared
         _ = GarminStore.shared
         _ = DeviceHUD.shared
+        _ = WeatherStore.shared
+        MediaKeys.shared.start()    // volume / brightness keys → the notch (needs Accessibility)
+        LockSounds.shared.start()   // a sound on lock and on unlock
         #else
         CryptoController.shared.start()
         PortfolioController.shared.start()

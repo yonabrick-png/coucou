@@ -324,6 +324,10 @@ struct OverviewView: View {
             #if !APPSTORE
             GarminStore.shared.openDashboard()   // ↗ opens the Redline dashboard
             #endif
+        case "integration_weather":
+            #if !APPSTORE
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Weather.app"))   // ↗ the Weather app
+            #endif
         case "integration_calendar":
             #if !APPSTORE
             if let next = CalendarController.shared.next, next.joinURL != nil {
@@ -1924,7 +1928,7 @@ struct IntegrationCardView: View {
             return true  // nothing to install: the relay tags desktop sessions on its own
         case "integration_shelf":
             return true  // nothing to set up: drop files on the notch
-        case "integration_timer", "integration_notes", "integration_garmin":
+        case "integration_timer", "integration_notes", "integration_garmin", "integration_weather":
             return true  // nothing to set up
         case "integration_calendar":
             #if !APPSTORE
@@ -2228,6 +2232,11 @@ struct IntegrationCardView: View {
         } else if task.id == "integration_garmin" {
             #if !APPSTORE
             GarminCardView()
+                .transition(.opacity)
+            #endif
+        } else if task.id == "integration_weather" {
+            #if !APPSTORE
+            WeatherCardView()
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {

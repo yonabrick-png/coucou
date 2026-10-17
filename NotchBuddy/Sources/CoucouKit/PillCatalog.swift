@@ -134,6 +134,8 @@ enum PillCatalog {
               category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
         .init(id: "integration_garmin",  name: "Garmin",      color: "#22D3EE",
               category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
+        .init(id: "integration_weather", name: "Weather",     color: "#60A5FA",
+              category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
         .init(id: "integration_mail",    name: "Mail",        color: "#2F8CFF",
               category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
         .init(id: "integration_crypto",    name: "Crypto",      color: "#F7931A",
@@ -162,6 +164,7 @@ enum PillCatalog {
         "integration_shelf",
         "integration_timer",
         "integration_notes",
+        "integration_weather",
         // Garmin lives in its own 🏃 tab (GarminFullView), not as a home pill
     ]
 
