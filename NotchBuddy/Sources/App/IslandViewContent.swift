@@ -25,6 +25,12 @@ struct IslandViewContent: View {
             #else
             PromptView(state: state)
             #endif
+        case .calendar:
+            #if !APPSTORE
+            CalendarMonthView(state: state)
+            #else
+            EmptyView()
+            #endif
         case .searching: SearchingView(state: state)
         case .result:    ResultView(state: state)
         case .note:      NoteView(state: state)
@@ -56,6 +62,14 @@ struct OverviewView: View {
     @State private var activeDiffId: Int? = nil
 
     var agent: AgentTask? { state.focusTask }
+
+    #if !APPSTORE
+    private func moveFocusOffDormantClaude() {
+        guard let focus = state.focusTask, focus.isDormantClaudePill,
+              let other = state.tasks.first(where: { !$0.isDormantClaudePill }) else { return }
+        state.setFocus(other.id)
+    }
+    #endif
 
     var body: some View {
         HStack(spacing: 10) {
@@ -180,7 +194,15 @@ struct OverviewView: View {
                 AgentPillsView(state: state)
             }
         }
+        #if !APPSTORE
+        // The Claude pill hides while no session runs: don't leave it in focus
+        .onAppear { moveFocusOffDormantClaude() }
+        .onChange(of: state.tasks.map(\.id)) { _, _ in moveFocusOffDormantClaude() }
+        #endif
         .onChange(of: state.focusId) { _, new in
+            #if !APPSTORE
+            moveFocusOffDormantClaude()
+            #endif
             showingN8nDetail = false
             activeDiffId = nil
             #if !APPSTORE
@@ -4039,7 +4061,11 @@ struct AgentPillsView: View {
     @State private var swapping = false
 
     private var others: [AgentTask] {
+        #if !APPSTORE
+        state.tasks.filter { $0.id != state.focusId && !$0.isDormantClaudePill }
+        #else
         state.tasks.filter { $0.id != state.focusId }
+        #endif
     }
 
     private var displayTasks: [AgentTask] {

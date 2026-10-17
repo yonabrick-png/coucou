@@ -98,9 +98,23 @@ final class ClaudeSessions: ObservableObject {
         }
     }
 
+    /// A Claude Code session is running (started and not ended) somewhere.
+    var hasLiveSession: Bool { sessions.values.contains { !$0.ended } }
+
     /// Only letters, digits and `/ - _ .`: these values end up inside an AppleScript string.
     nonisolated static func isSafeToken(_ s: String) -> Bool {
         !s.isEmpty && s.count < 128 && s.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "/-_.".contains($0)) }
+    }
+}
+
+// MARK: - The Claude pill only while a session runs
+
+extension AgentTask {
+    /// The Claude Code pill with no session running and nothing to say: hidden from the notch
+    /// (the chat tab is where Claude lives). It comes back with the first hook of a session.
+    @MainActor var isDormantClaudePill: Bool {
+        id == "integration_claude" && state == .idle && pillBadge == nil
+            && !ClaudeSessions.shared.hasLiveSession
     }
 }
 

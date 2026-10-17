@@ -546,6 +546,9 @@ struct IslandHeader: View {
                     }
                     #endif
                 })
+                #if !APPSTORE
+                TabButton(icon: "calendar", view: .calendar, state: state)
+                #endif
                 TabButton(icon: "plus", view: .upload, state: state)
             }
             .padding(.leading, 14)
@@ -711,7 +714,11 @@ struct CompactMiniGrid: View {
     @ObservedObject var state: AppState
 
     private var others: [AgentTask] {
+        #if !APPSTORE
+        Array(state.tasks.filter { $0.id != state.focusId && !$0.isDormantClaudePill }.prefix(4))
+        #else
         Array(state.tasks.filter { $0.id != state.focusId }.prefix(4))
+        #endif
     }
 
     var body: some View {

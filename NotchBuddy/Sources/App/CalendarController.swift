@@ -31,6 +31,8 @@ final class CalendarController: ObservableObject {
     /// Not yet finished, from now to the end of tomorrow, in start order.
     @Published private(set) var events: [Event] = []
     @Published private(set) var access: Access = CalendarController.currentAccess()
+    /// Bumped whenever the calendars change, so the month view reads them again.
+    @Published private(set) var revision = 0
 
     private let store = EKEventStore()
     private var tick: Timer?
@@ -128,16 +130,26 @@ final class CalendarController: ObservableObject {
     // MARK: Reading
 
     func reload() {
-        guard isPillActive else { return }
         access = Self.currentAccess()
+        guard isPillActive else { revision &+= 1; return }
         guard access == .granted else { events = []; syncTaskName(); return }
         let cal = Calendar.current
         let now = Date()
         let startOfToday = cal.startOfDay(for: now)
         guard let endOfTomorrow = cal.date(byAdding: .day, value: 2, to: startOfToday) else { return }
-        let predicate = store.predicateForEvents(withStart: startOfToday, end: endOfTomorrow, calendars: nil)
-        events = store.events(matching: predicate)
-            .filter { $0.endDate > now && $0.status != .canceled }
+        events = events(in: DateInterval(start: startOfToday, end: endOfTomorrow))
+            .filter { $0.end > now }
+        revision &+= 1
+        syncTaskName()
+    }
+
+    /// Every event overlapping `interval` (finished ones included), in start order.
+    /// Used by the month view; works whether or not the pill is active.
+    func events(in interval: DateInterval) -> [Event] {
+        guard Self.currentAccess() == .granted else { return [] }
+        let predicate = store.predicateForEvents(withStart: interval.start, end: interval.end, calendars: nil)
+        return store.events(matching: predicate)
+            .filter { $0.status != .canceled }
             .sorted { $0.startDate < $1.startDate }
             .map { e in
                 Event(id: "\(e.eventIdentifier ?? UUID().uuidString)@\(e.startDate.timeIntervalSince1970)",
@@ -147,7 +159,6 @@ final class CalendarController: ObservableObject {
                       location: e.location ?? "",
                       joinURL: Self.joinURL(url: e.url, location: e.location, notes: e.notes))
             }
-        syncTaskName()
     }
 
     /// The pill shows the next event's title, like the music pills show the track.
