@@ -20,6 +20,10 @@ final class IslandStateMachine {
 
     /// When non-nil and returns true, timers and mouse-leave never auto-collapse or hide the island.
     var isHeldOpen: (() -> Bool)?
+    /// A text field in the island is being typed in: don't fold it from under the user.
+    var isTyping: (() -> Bool)?
+    /// The pointer is over the island right now.
+    var isPointerInside: (() -> Bool)?
 
     /// home → petit delay (seconds), kept in sync with the auto-close preference.
     var homeToPetitDelay: TimeInterval = 15 {
@@ -141,8 +145,12 @@ final class IslandStateMachine {
     func openedExternally() {
         cancelTimers()
         openedByHover = false
-        guard state != .home && state != .coucou else { return }
-        state = .home
+        if state != .home && state != .coucou { state = .home }
+        // Opened by the app (reminder, timer, music…) while the pointer is elsewhere: no
+        // mouse-leave will ever come, so fold after the auto-close delay on our own.
+        if state == .home, isPointerInside?() == false {
+            scheduleHomeCollapse(delay: homeToPetitDelay)
+        }
     }
 
     /// The app folded the island itself (Escape, Settings, OK button, auto-close).
@@ -213,15 +221,25 @@ final class IslandStateMachine {
         DispatchQueue.main.asyncAfter(deadline: .now() + petitToHiddenDelay, execute: item)
     }
 
-    private func scheduleHomeCollapse() {
+    /// The pointer left (or the app opened the island): fold it. Leaving folds it right away
+    /// (`hoverCloseDelay`), clicked inside or not — except while typing, which waits for the
+    /// auto-close delay and checks again.
+    private func scheduleHomeCollapse(delay override: TimeInterval? = nil) {
         homeCollapseWork?.cancel()
         let item = DispatchWorkItem { [weak self] in
             guard let self, self.state == .home, !(self.isHeldOpen?() ?? false) else { return }
+            if self.isTyping?() == true {
+                // Still typing: look again later instead of folding the text away
+                self.scheduleHomeCollapse(delay: self.homeToPetitDelay)
+                return
+            }
+            if self.isPointerInside?() == true { return }   // came back meanwhile
             self.openedByHover = false
             self.transition(to: .petit)
         }
         homeCollapseWork = item
-        let delay = openedByHover ? hoverCloseDelay : homeToPetitDelay
+        let typing = isTyping?() == true
+        let delay = override ?? (typing ? homeToPetitDelay : hoverCloseDelay)
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: item)
     }
 

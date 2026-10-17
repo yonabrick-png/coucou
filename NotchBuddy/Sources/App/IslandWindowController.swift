@@ -333,6 +333,14 @@ final class IslandWindowController: NSWindowController {
 
         // An approval, or an email prepared by voice, stays open until I click.
         fsm.isHeldOpen = { AppState.shared.pendingApproval != nil || AppState.shared.voiceMailDraft != nil }
+        // Typing in the island (Claude chat, Notes box): a focused text field with something in
+        // it. An empty focused field (the chat focuses its box on open) doesn't count.
+        fsm.isTyping = { [weak self] in
+            guard let panel = self?.islandPanel, panel.isKeyWindow,
+                  let editor = panel.firstResponder as? NSTextView else { return false }
+            return !editor.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        fsm.isPointerInside = { [weak self] in self?.wasInIsland ?? false }
 
         // Voice: wake phrase detected → open listening island
         #if !APPSTORE
