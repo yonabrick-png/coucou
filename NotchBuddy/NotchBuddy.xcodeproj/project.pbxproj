@@ -134,6 +134,7 @@
 		541AF30CF808CC0FC1B8D97D /* ElevenLabsTTS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046F9CD91704C34AE5BE9393 /* ElevenLabsTTS.swift */; };
 		56BE8C733F10A030A638FB60 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */; };
 		56E12FFCAAB2C4F31600B0F8 /* FlowHubHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982CBB722685931BB8958162 /* FlowHubHome.swift */; };
+		5976DBE4704C23DEE7F3976C /* DailyBrief.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C197BEC2AA1B37DD02B5B6 /* DailyBrief.swift */; };
 		59FABCC0B6794FE95319825C /* CoucouNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D6DF93125491729E14636AD8 /* CoucouNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5A3DA40DB6C8161E6CB504C7 /* FlowSettingsBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8436291D94C826F1D9DA3130 /* FlowSettingsBox.swift */; };
 		5B9A00AFB0837731FA678E4E /* IslandStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8212018F09EA1E96FBD63CD /* IslandStateMachine.swift */; };
@@ -391,6 +392,7 @@
 		ED5D9A334DE08C0EB81DE322 /* AskQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB84A66045EB20CAC93A8A6 /* AskQuestion.swift */; };
 		ED62D1B9E6A35B1F85074A2A /* SharedSessions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1064AD8471C51AFF4F12258 /* SharedSessions.swift */; };
 		EE3AB10544113500486A9684 /* ColorHex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACB4350729C6513824D1ADF /* ColorHex.swift */; };
+		EECF853064CA133C02F89E1A /* DailyBrief.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C197BEC2AA1B37DD02B5B6 /* DailyBrief.swift */; };
 		EF5562030A7BA718EFA63278 /* VoiceDataSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = F289B4DB7C57BC593C2E7B7F /* VoiceDataSources.swift */; };
 		EF584BA65AA62FCABD6FB6B2 /* FlowKeyLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4983B1317913482E61EB344D /* FlowKeyLogic.swift */; };
 		EF9E6418C3F39F6FE88FD812 /* CoucouPhoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D9CEB5655FCA197D6B10A91 /* CoucouPhoneApp.swift */; };
@@ -632,6 +634,7 @@
 		DE18399D1CD69468CCF57966 /* MochiActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiActivityState.swift; sourceTree = "<group>"; };
 		DE925A6844FE3E3C09131CE0 /* VoiceTranscriptHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceTranscriptHistory.swift; sourceTree = "<group>"; };
 		E18E74B3586BC0861C69E70A /* InstructionComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstructionComposer.swift; sourceTree = "<group>"; };
+		E5C197BEC2AA1B37DD02B5B6 /* DailyBrief.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBrief.swift; sourceTree = "<group>"; };
 		E6AAC67875F84A862BC2A9AF /* ServiceDetailRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDetailRunner.swift; sourceTree = "<group>"; };
 		E84E5D91129352E8A1D32AA4 /* MochiOutfitDrawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiOutfitDrawing.swift; sourceTree = "<group>"; };
 		E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowContextCapture.swift; sourceTree = "<group>"; };
@@ -709,6 +712,7 @@
 				73FA4DF1BE5246CCFFB72E5C /* CodexPlanGauge.swift */,
 				73DF398C822D98F541B62F89 /* CryptoController.swift */,
 				B59DD402B4D54D4A7DD36AB2 /* CryptoViews.swift */,
+				E5C197BEC2AA1B37DD02B5B6 /* DailyBrief.swift */,
 				AEF5BD66B00BB64BB80AF38C /* DemoEngine.swift */,
 				B1DDC96E7967032F5D0BD585 /* DesktopMochi.swift */,
 				C086E1932F86B9C2B559BE03 /* DesktopMochiLogic.swift */,
@@ -1211,6 +1215,7 @@
 				E5D08513CFEA5D5E6760ECA4 /* ConversationContext.swift in Sources */,
 				DEDE942C3CD3F30B492BEEF5 /* CryptoController.swift in Sources */,
 				2405F4EC8C89EE56F612BE2B /* CryptoViews.swift in Sources */,
+				EECF853064CA133C02F89E1A /* DailyBrief.swift in Sources */,
 				B0CE5AC8B579866A14BD61D0 /* DemoEngine.swift in Sources */,
 				BEC5DDB55B3DA67C61CA8470 /* DesktopMochi.swift in Sources */,
 				BA65FC4A40F7227837C26214 /* DesktopMochiLogic.swift in Sources */,
@@ -1451,6 +1456,7 @@
 				4F4176856B544D8C620B6204 /* ConversationContext.swift in Sources */,
 				D69E561062D9358837380ABD /* CryptoController.swift in Sources */,
 				3C8CBC6F9B6B3AEC1AD6647C /* CryptoViews.swift in Sources */,
+				5976DBE4704C23DEE7F3976C /* DailyBrief.swift in Sources */,
 				F157D7A9BF878DB2B286B1F7 /* DemoEngine.swift in Sources */,
 				273FC0FA14AAF6CE62FD14AE /* DesktopMochi.swift in Sources */,
 				C93BA975D35B8CD7473CF995 /* DesktopMochiLogic.swift in Sources */,

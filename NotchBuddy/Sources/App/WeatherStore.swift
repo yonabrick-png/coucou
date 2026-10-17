@@ -63,6 +63,9 @@ final class WeatherStore: NSObject, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     nonisolated private static let fallback = CLLocationCoordinate2D(latitude: 32.0853, longitude: 34.7818)   // Tel Aviv
+    nonisolated private static let latKey = "coucou.weather.lat"
+    nonisolated private static let lonKey = "coucou.weather.lon"
+    nonisolated private static let placeKey = "coucou.weather.place"
 
     private override init() {
         super.init()
@@ -80,7 +83,8 @@ final class WeatherStore: NSObject, ObservableObject {
     // MARK: Lifecycle
 
     private func start() {
-        locate()
+        refresh()   // straight away with the last known place (or Tel Aviv)
+        locate()    // and a precise place when macOS gives one
         guard timer == nil else { return }
         timer = Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { _ in
             Task { @MainActor in WeatherStore.shared.refresh() }
@@ -118,7 +122,20 @@ final class WeatherStore: NSObject, ObservableObject {
     }
 
     func refresh() {
-        guard let c = coordinate else { locate(); return }
+        // Never wait on the location: the last place we knew, else Tel Aviv, right away.
+        // A real fix (if macOS gives one) refines it in the location callback.
+        if coordinate == nil {
+            let d = UserDefaults.standard
+            if d.object(forKey: Self.latKey) != nil {
+                coordinate = CLLocationCoordinate2D(latitude: d.double(forKey: Self.latKey),
+                                                    longitude: d.double(forKey: Self.lonKey))
+                place = d.string(forKey: Self.placeKey) ?? ""
+            } else {
+                coordinate = Self.fallback
+                place = "Tel Aviv"
+            }
+        }
+        guard let c = coordinate else { return }
         var comps = URLComponents(string: "https://api.open-meteo.com/v1/forecast")!
         comps.queryItems = [
             .init(name: "latitude", value: String(format: "%.3f", c.latitude)),
@@ -321,9 +338,12 @@ extension WeatherStore: CLLocationManagerDelegate {
         Task { @MainActor in
             let s = WeatherStore.shared
             s.coordinate = coordinate
+            UserDefaults.standard.set(coordinate.latitude, forKey: WeatherStore.latKey)
+            UserDefaults.standard.set(coordinate.longitude, forKey: WeatherStore.lonKey)
             s.refresh()
             if let mark = try? await CLGeocoder().reverseGeocodeLocation(loc).first {
                 s.place = mark.locality ?? mark.name ?? ""
+                UserDefaults.standard.set(s.place, forKey: WeatherStore.placeKey)
             }
         }
     }

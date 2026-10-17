@@ -16,6 +16,7 @@ enum IslandView: String, CaseIterable {
     case voiceResult  // voice command executed — "✓ Musique lancée" for ~2 s
     case garmin       // Yehonathan's full Garmin / Redline picture (GitHub build)
     case weather      // the forecast and the best time to run (GitHub build)
+    case brief        // the first-open-of-the-day brief (GitHub build)
 }
 
 // MARK: - Bot State
@@ -241,6 +242,8 @@ enum IslandConst {
         .voiceResult:  ViewLayout(height: 160, botX: 68,  botY: nil, botDiameter: 58, agentMode: .none),
         // Garmin: tall like the chat, Mochi placed like the chat's
         .weather:      ViewLayout(height: 300, botX: 52,  botY: nil, botDiameter: 44, agentMode: .none),
+        // Daily brief: a greeting and a row of small cards, Mochi waving on the left
+        .brief:        ViewLayout(height: 196, botX: 58,  botY: nil, botDiameter: 52, agentMode: .none),
         .garmin:       ViewLayout(height: 300, botX: 52,  botY: nil, botDiameter: 44, agentMode: .none),
     ]
 

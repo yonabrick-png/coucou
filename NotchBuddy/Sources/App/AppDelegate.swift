@@ -109,6 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: NSLocalizedString("Weekly recap", comment: ""), action: #selector(openWeeklyRecap), keyEquivalent: "")
         #if !APPSTORE
+        menu.addItem(withTitle: String(localized: "Show daily brief"), action: #selector(showDailyBrief), keyEquivalent: "")
         menu.addItem(withTitle: String(localized: "hub.menu"), action: #selector(openFlowHub), keyEquivalent: "")
         #endif
         menu.addItem(withTitle: NSLocalizedString("Settings…", comment: ""), action: #selector(openSettings), keyEquivalent: ",")
@@ -135,6 +136,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     #if !APPSTORE
+    @objc private func showDailyBrief() {
+        DailyBrief.show()
+    }
+
     @objc private func openFlowHub() {
         if AppState.shared.mode == .expanded { islandController?.collapse() }
         FlowHubController.shared.show(.general)
@@ -298,6 +303,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = WeatherStore.shared
         MediaKeys.shared.start()    // volume / brightness keys → the notch (needs Accessibility)
         LockSounds.shared.start()   // a sound on lock and on unlock
+        // First start of the day (after the greeting animation): the daily brief
+        DailyBrief.showIfFirstToday(after: 7)
         #else
         CryptoController.shared.start()
         PortfolioController.shared.start()

@@ -24,6 +24,8 @@ final class LockSounds {
                 try? await Task.sleep(for: .milliseconds(350))
                 SoundEngine.shared.play("greet")
                 NotificationCenter.default.post(name: .triggerEmote, object: BotEmote.love)
+                // First unlock of the day: the daily brief slides out of the notch
+                DailyBrief.showIfFirstToday(after: 1.0)
             }
         })
     }
