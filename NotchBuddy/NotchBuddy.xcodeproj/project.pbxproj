@@ -65,9 +65,11 @@
 		244EC9B77D1903C8DD505D04 /* MochiLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA6A002ABEC0CC57667FBE0 /* MochiLiveActivity.swift */; };
 		2540E4198492CC2B9237ED99 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6EB7C8468A8339CF6A5C /* SpotifyController.swift */; };
 		25F66E99460D62478899A292 /* MochiWardrobe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A7807ADD0963FF260D1FAD /* MochiWardrobe.swift */; };
+		26B470F746DCAA9B979E47A8 /* CalendarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392746EB6E84FC2A28E8385C /* CalendarController.swift */; };
 		26D933FDB84F83D33BE6B91B /* FlowPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD88FB0222D3F8893AF1D33D /* FlowPill.swift */; };
 		26E35C79CCD09FEBA04A3EF6 /* LinkTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6762C38A8952A90F394EDFE4 /* LinkTestView.swift */; };
 		273B404F55739D661D9489D8 /* VoiceBrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C563E55884A7750B40EC9A01 /* VoiceBrain.swift */; };
+		273F50A290B9DF27C636CFCB /* CalendarViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0799E1D67F383F58AB67DB7 /* CalendarViews.swift */; };
 		273FC0FA14AAF6CE62FD14AE /* DesktopMochi.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1DDC96E7967032F5D0BD585 /* DesktopMochi.swift */; };
 		2768A639F60C4B4C6EC98436 /* DictationTranscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A2317343D062ACCAF4E5BD /* DictationTranscript.swift */; };
 		2875610F701376BD65573386 /* WindowContextCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91B733ADC638E14E9BB6EFA /* WindowContextCapture.swift */; };
@@ -174,6 +176,7 @@
 		78F045A55E6F4EEA5787EEEF /* MochiStill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E7300878138F0AC385920 /* MochiStill.swift */; };
 		78FCEDC8F78B683AB10E6529 /* NotionPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE03E03D1804B0B92C5C2DAD /* NotionPoller.swift */; };
 		79BD23BDFE42A929764635E7 /* MailController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F2F18663F42A246DACCD639 /* MailController.swift */; };
+		79BD9FD7FECD5666003F4025 /* CalendarViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0799E1D67F383F58AB67DB7 /* CalendarViews.swift */; };
 		7A449E237CAAB62758508C7C /* RecapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FB882D49084DEA6A10DB4D /* RecapStore.swift */; };
 		7AEED9FBB924F0DD1D07E1A5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2AA83D80260660475FAB052 /* Localizable.xcstrings */; };
 		7B7CBFAADFF687004012609D /* FlowHubWords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A34DE2886E394C879CF64 /* FlowHubWords.swift */; };
@@ -345,6 +348,7 @@
 		E1581F8F2725B26E90D91C4A /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2EED5205DD7161E51BE1E1 /* IntroView.swift */; };
 		E2414533EDC7565286141198 /* SpotifyController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6EB7C8468A8339CF6A5C /* SpotifyController.swift */; };
 		E4B9986674F4D425826F15A8 /* StripePoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF78999D68D56ADE4CEFBE2 /* StripePoller.swift */; };
+		E51309D4B5D28E9B186A49EF /* CalendarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392746EB6E84FC2A28E8385C /* CalendarController.swift */; };
 		E5D08513CFEA5D5E6760ECA4 /* ConversationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A67DA3B8EEF063C44E07F7E /* ConversationContext.swift */; };
 		E701BC8996229D08362CA732 /* ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AF705275522F99CAE7E1429 /* ServiceStatus.swift */; };
 		E776C7D1DE5C62EA8D4BA3E3 /* FileDropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3232F258523DD8D09B670363 /* FileDropView.swift */; };
@@ -467,6 +471,7 @@
 		37147F42613183DBA8896835 /* finish.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = finish.wav; sourceTree = "<group>"; };
 		37564F5F041B38C976DF3DEF /* PillColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillColors.swift; sourceTree = "<group>"; };
 		38BEAB5F20A13E5806A42EC9 /* ApprovalCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalCard.swift; sourceTree = "<group>"; };
+		392746EB6E84FC2A28E8385C /* CalendarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarController.swift; sourceTree = "<group>"; };
 		3A27178AA6007F7B56901750 /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
 		3A8FB03801C49690C3789EFD /* VoiceCaptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceCaptionManager.swift; sourceTree = "<group>"; };
 		3B238F6E7B20EFDED5CD3E8E /* ClaudeSettingsFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsFile.swift; sourceTree = "<group>"; };
@@ -545,6 +550,7 @@
 		AD88FB0222D3F8893AF1D33D /* FlowPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowPill.swift; sourceTree = "<group>"; };
 		ADA6A002ABEC0CC57667FBE0 /* MochiLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiLiveActivity.swift; sourceTree = "<group>"; };
 		AEF5BD66B00BB64BB80AF38C /* DemoEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoEngine.swift; sourceTree = "<group>"; };
+		B0799E1D67F383F58AB67DB7 /* CalendarViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarViews.swift; sourceTree = "<group>"; };
 		B1DDC96E7967032F5D0BD585 /* DesktopMochi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopMochi.swift; sourceTree = "<group>"; };
 		B241B043223AFBBFB7418A5E /* UploadCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadCanvasView.swift; sourceTree = "<group>"; };
 		B249C39EA29E941BC52A6126 /* FlowHubSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowHubSettings.swift; sourceTree = "<group>"; };
@@ -645,6 +651,8 @@
 				EBB84A66045EB20CAC93A8A6 /* AskQuestion.swift */,
 				A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */,
 				3104222B3F17BA5E8DEA5277 /* CalcomPoller.swift */,
+				392746EB6E84FC2A28E8385C /* CalendarController.swift */,
+				B0799E1D67F383F58AB67DB7 /* CalendarViews.swift */,
 				D797CC384B5BC70D34F121BC /* ChatMarkdown.swift */,
 				BFE88A53AEAA637F866D479D /* ChatMarkdownView.swift */,
 				BDF79FFAE389D34F5CEDCD22 /* ClaudeChatView.swift */,
@@ -1127,6 +1135,8 @@
 				CD8DECA66B9E09C97E469DB9 /* BotCanvasView.swift in Sources */,
 				845D762E9F4F0AD0D5FCEDF4 /* BotEngine.swift in Sources */,
 				4F1E0B3C838DA3CD6F864BC0 /* CalcomPoller.swift in Sources */,
+				26B470F746DCAA9B979E47A8 /* CalendarController.swift in Sources */,
+				79BD9FD7FECD5666003F4025 /* CalendarViews.swift in Sources */,
 				8FC5907E9506DC79EB1DDC3C /* ChatMarkdown.swift in Sources */,
 				4976F8BF814D6F817370F1D8 /* ChatMarkdownView.swift in Sources */,
 				3745450EBBE084E1486EE809 /* ClaudeChatView.swift in Sources */,
@@ -1351,6 +1361,8 @@
 				651FA3F09608DE5D02D61CCE /* BotCanvasView.swift in Sources */,
 				B314F09AD7924387D0E04B45 /* BotEngine.swift in Sources */,
 				1969590AFEE6CB21404346F1 /* CalcomPoller.swift in Sources */,
+				E51309D4B5D28E9B186A49EF /* CalendarController.swift in Sources */,
+				273F50A290B9DF27C636CFCB /* CalendarViews.swift in Sources */,
 				B2D86BE268D6F4C86BD0C446 /* ChatMarkdown.swift in Sources */,
 				733FCC6A45DE963EF2024B4E /* ChatMarkdownView.swift in Sources */,
 				614A84CD224BD89F13C13102 /* ClaudeChatView.swift in Sources */,

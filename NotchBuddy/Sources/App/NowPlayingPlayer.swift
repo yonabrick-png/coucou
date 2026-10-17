@@ -176,6 +176,7 @@ struct CompactTrailing: View {
     @ObservedObject var state: AppState
     @ObservedObject private var music = MusicController.shared
     @ObservedObject private var spotify = SpotifyController.shared
+    @ObservedObject private var calendar = CalendarController.shared
 
     var body: some View {
         if state.activeIntegrations.contains(MusicController.pillId),
@@ -188,6 +189,17 @@ struct CompactTrailing: View {
             CompactNowPlaying(artwork: spotify.artwork, isPlaying: true,
                               brand: Color(hex: SpotifyController.green))
                 .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        } else if state.activeIntegrations.contains(CalendarController.pillId) {
+            // An event within 30 minutes takes the slot; re-checked once a minute
+            TimelineView(.periodic(from: .now, by: 60)) { context in
+                if let event = CompactCalendarBadge.current(now: context.date) {
+                    CompactCalendarBadge(event: event)
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                } else {
+                    CompactMiniGrid(state: state)
+                        .transition(.opacity)
+                }
+            }
         } else {
             CompactMiniGrid(state: state)
                 .transition(.opacity)

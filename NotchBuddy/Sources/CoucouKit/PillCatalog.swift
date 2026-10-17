@@ -124,6 +124,8 @@ enum PillCatalog {
               category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
         .init(id: "integration_spotify", name: "Spotify",     color: "#1DB954",
               category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
+        .init(id: "integration_calendar", name: "Calendar",   color: "#FF453A",
+              category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
         .init(id: "integration_mail",    name: "Mail",        color: "#2F8CFF",
               category: .service,   subtitle: "Integration",  source: .n8n, githubOnly: true),
         .init(id: "integration_crypto",    name: "Crypto",      color: "#F7931A",
@@ -148,6 +150,7 @@ enum PillCatalog {
         "integration_claude",
         "integration_music",
         "integration_spotify",
+        "integration_calendar",
     ]
 
     /// Default ID for the always-on main workspace pill.

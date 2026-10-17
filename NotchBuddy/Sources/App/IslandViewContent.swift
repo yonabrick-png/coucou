@@ -286,6 +286,14 @@ struct OverviewView: View {
             #if !APPSTORE
             MusicController.shared.openMusic()
             #endif
+        case "integration_calendar":
+            #if !APPSTORE
+            if let next = CalendarController.shared.next, next.joinURL != nil {
+                CalendarController.shared.join(next)   // ↗ on a meeting joins it
+            } else {
+                CalendarController.shared.openCalendar()
+            }
+            #endif
         case "integration_spotify":
             #if !APPSTORE
             SpotifyController.shared.openSpotify()
@@ -1870,6 +1878,12 @@ struct IntegrationCardView: View {
             #endif
         case "agent_claude-desktop":
             return true  // nothing to install: the relay tags desktop sessions on its own
+        case "integration_calendar":
+            #if !APPSTORE
+            return true  // the card asks for calendar access itself
+            #else
+            return false
+            #endif
         case "integration_music":
             #if !APPSTORE
             return true  // Apple Music is always installed on macOS
@@ -1983,6 +1997,15 @@ struct IntegrationCardView: View {
         guard task.id == "integration_mail" else { return false }
         let mail = MailController.shared
         return mail.isMailRunning && !mail.automationDenied
+        #else
+        return false
+        #endif
+    }
+
+    // Calendar: its own card for every state (agenda, nothing left, access to ask or denied)
+    private var isCalendar: Bool {
+        #if !APPSTORE
+        return task.id == "integration_calendar"
         #else
         return false
         #endif
@@ -2132,6 +2155,11 @@ struct IntegrationCardView: View {
         } else if musicIsActive {
             #if !APPSTORE
             MusicCardView()
+                .transition(.opacity)
+            #endif
+        } else if isCalendar {
+            #if !APPSTORE
+            CalendarCardView()
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {
