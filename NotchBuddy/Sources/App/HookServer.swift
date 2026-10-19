@@ -464,7 +464,10 @@ final class HookServer: @unchecked Sendable {
             isExternalAgent = false
             hostApp = host.bundleId
         } else {
-            nbLog("Ignored \(name) from \(termProgram.isEmpty ? bundleId : termProgram) (\(projectName))")
+            let hostApp = (payload["host_app"] as? String).map { URL(fileURLWithPath: $0).lastPathComponent } ?? ""
+            let mode = payload["permission_mode"] as? String ?? ""
+            let tool = payload["tool_name"] as? String ?? ""
+            nbLog("Ignored \(name) from \(termProgram.isEmpty ? bundleId : termProgram) (\(projectName)) app=\(hostApp) sid=\(sessionId.prefix(8)) mode=\(mode) tool=\(tool)")
             return
         }
 
@@ -3269,6 +3272,32 @@ def session_tty():
         pass
     return ''
 
+def host_app():
+    # The macOS app that started this agent (OpenMausBot, Claude, a terminal…): walk up the
+    # process tree to the first command inside an .app bundle. Empty when there is none.
+    try:
+        import subprocess
+        pid = os.getppid()   # not this python: /usr/bin/python3 runs from inside Xcode
+        for _ in range(12):
+            out = subprocess.run(['/bin/ps', '-o', 'ppid=,comm=', '-p', str(pid)],
+                                 capture_output=True, text=True, timeout=1).stdout.strip()
+            if not out:
+                return ''
+            parts = out.split(None, 1)
+            if len(parts) < 2:
+                return ''
+            ppid, comm = parts[0], parts[1]
+            marker = '.app/Contents/'
+            if marker in comm and '/Contents/Developer/' not in comm:
+                app = comm.split(marker)[0] + '.app'
+                return app
+            pid = int(ppid)
+            if pid <= 1:
+                return ''
+    except Exception:
+        pass
+    return ''
+
 def main():
     raw = b''
     payload = {}
@@ -3417,6 +3446,9 @@ def main():
     # Only when a session starts or takes a prompt: one ps call, never on the busy events.
     if event in ('SessionStart', 'UserPromptSubmit') and not payload.get('tty'):
         payload['tty'] = session_tty()
+    # Which app started the session (tells OpenMausBot's bots apart from terminals)
+    if event in ('SessionStart', 'UserPromptSubmit', 'PermissionRequest') and not payload.get('host_app'):
+        payload['host_app'] = host_app()
     # socket_path is already defined above
 
     if event == 'PermissionRequest':
