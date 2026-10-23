@@ -87,8 +87,9 @@ struct FocusMusicView: View {
                 .frame(maxHeight: .infinity)
             }
         }
-        // Clear the notch: the player sits under it
-        .padding(.top, max(0, state.notchHeight - 4))
+        // Clear the notch (the container already adds 8 pt on top): the player sits under it
+        .padding(.top, max(0, state.notchHeight - 6))
+        .frame(maxHeight: .infinity, alignment: .top)
         .onAppear { MusicController.shared.refresh(); SpotifyController.shared.refresh() }
     }
 
