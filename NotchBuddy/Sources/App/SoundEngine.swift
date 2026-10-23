@@ -104,6 +104,9 @@ final class SoundEngine {
 
     func play(_ name: String) {
         guard enabled && AppState.shared.soundEnabled else { return }
+        #if !APPSTORE
+        guard NotchModes.shared.allowsSound(name) else { return }   // Focus / Meeting / Night are quiet
+        #endif
         guard let pool = players[name] else { return }
         // Find a player that is not currently playing
         let player = pool.first { !$0.isPlaying } ?? pool[0]

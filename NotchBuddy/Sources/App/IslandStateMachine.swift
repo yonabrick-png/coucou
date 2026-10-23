@@ -24,6 +24,8 @@ final class IslandStateMachine {
     var isTyping: (() -> Bool)?
     /// The pointer is over the island right now.
     var isPointerInside: (() -> Bool)?
+    /// A mode hides the island (Meeting, Night): nothing reveals or opens it.
+    var isSuppressed: (() -> Bool)?
 
     /// home → petit delay (seconds), kept in sync with the auto-close preference.
     var homeToPetitDelay: TimeInterval = 15 {
@@ -63,6 +65,7 @@ final class IslandStateMachine {
 
     /// Mouse entered the island notch area
     func mouseEntered() {
+        if isSuppressed?() == true { return }
         if openOnHover, state == .hidden || state == .petit, isHeldOpen?() != true {
             cancelTimers()
             openedByHover = true
@@ -124,6 +127,7 @@ final class IslandStateMachine {
     /// Also accepts `.listening`: the user can open the island while voice is active; voice
     /// continues uninterrupted and the island expands to the overview.
     func click() {
+        if isSuppressed?() == true { return }
         openedByHover = false
         guard state == .petit || state == .hidden || state == .listening else { return }
         cancelTimers()
@@ -203,10 +207,18 @@ final class IslandStateMachine {
 
     /// Non-alert work event: show compact from hidden (HookServer reveal)
     func reveal() {
-        guard state == .hidden else { return }
+        guard state == .hidden, isSuppressed?() != true else { return }
         cancelTimers()
         transition(to: .petit)
         schedulePetitHide()
+    }
+
+    /// A mode that hides the island was chosen: hide it now, whatever it was showing.
+    func forceHide() {
+        cancelTimers()
+        openedByHover = false
+        guard state != .hidden else { return }
+        transition(to: .hidden)
     }
 
     /// A quick pop-up (volume, brightness, battery…) that revealed the island from hidden is

@@ -18,6 +18,8 @@ enum DailyBrief {
     /// Shows the brief if it hasn't been shown today, after `delay` seconds.
     static func showIfFirstToday(after delay: Double) {
         guard UserDefaults.standard.string(forKey: lastDayKey) != dayKey() else { return }
+        // Quiet modes keep it for later: it shows when you're back in Everything
+        guard NotchModes.shared.allowsBrief else { return }
         UserDefaults.standard.set(dayKey(), forKey: lastDayKey)
         show(after: delay)
     }

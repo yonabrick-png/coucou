@@ -341,6 +341,9 @@ final class IslandWindowController: NSWindowController {
             return !editor.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
         fsm.isPointerInside = { [weak self] in self?.wasInIsland ?? false }
+        #if !APPSTORE
+        fsm.isSuppressed = { NotchModes.shared.hidesIsland }
+        #endif
 
         // Voice: wake phrase detected → open listening island
         #if !APPSTORE
@@ -669,8 +672,12 @@ final class IslandWindowController: NSWindowController {
             }
 
         case .openChat:
+            #if !APPSTORE
+            break   // the Claude chat tab is hidden for now (its code stays)
+            #else
             islandPanel.makeKey()
             expand(to: .prompt)
+            #endif
 
         case .goToAlert:
             if state.pendingApproval != nil {
@@ -872,6 +879,10 @@ final class IslandWindowController: NSWindowController {
         // Hook server expand requests (alerts only)
         NotificationCenter.default.addObserver(forName: .hookExpand, object: nil, queue: .main) { [weak self] note in
             guard let self, let view = note.object as? IslandView else { return }
+            #if !APPSTORE
+            // Meeting / Night: stay hidden (this observer runs on the main queue)
+            if MainActor.assumeIsolated({ NotchModes.shared.hidesIsland }) { return }
+            #endif
             self.fsm.openedExternally()
             self.expand(to: view)
         }
@@ -881,6 +892,17 @@ final class IslandWindowController: NSWindowController {
             guard let self else { return }
             self.fsm.reveal()
         }
+
+        #if !APPSTORE
+        // Meeting / Night chosen: fold and hide the island right away
+        NotificationCenter.default.addObserver(forName: .notchModeHide, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                if self.state.mode == .expanded { self.collapse() }
+                self.fsm.forceHide()
+            }
+        }
+        #endif
 
         // A pop-up (volume, brightness, battery…) that opened the island is done: fold it back
         NotificationCenter.default.addObserver(forName: .islandPopupDone, object: nil, queue: .main) { [weak self] _ in

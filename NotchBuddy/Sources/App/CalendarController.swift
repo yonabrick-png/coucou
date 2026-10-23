@@ -126,6 +126,10 @@ final class CalendarController: ObservableObject {
         if live != events { events = live }
         syncTaskName()
         offerStudyIfStarting(now: now)
+        // A video call under way hides the notch (Meeting mode) until it ends
+        NotchModes.shared.followCalendar(inMeeting: events.contains {
+            !$0.isAllDay && $0.joinURL != nil && $0.start <= now && $0.end > now
+        })
     }
 
     // MARK: Study events → timer

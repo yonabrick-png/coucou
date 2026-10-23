@@ -179,13 +179,25 @@ struct CompactTrailing: View {
     @ObservedObject private var calendar = CalendarController.shared
     @ObservedObject private var timer = FocusTimer.shared
     @ObservedObject private var device = DeviceHUD.shared
+    @ObservedObject private var modes = NotchModes.shared
 
     var body: some View {
         if let hud = device.current {
             // Plugged in, low battery, headphones: a few seconds, above everything
+            // (DeviceHUD only shows what the mode allows)
             CompactDeviceHUD(hud: hud)
                 .id(hud.id)
                 .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        } else if modes.mode == .focus {
+            // Focus: Dynamic Island — the cover sits on the left, the bars here
+            if let t = FocusNowPlaying.current() {
+                SoundBars(isPlaying: t.isPlaying, color: ArtworkAccent.color(for: t.artwork) ?? t.brand)
+                    .frame(width: 18, height: 14)
+                    .frame(width: 32, height: 28)
+                    .transition(.opacity)
+            }
+        } else if !modes.allowsCompact(.music) && !modes.allowsCompact(.timer) {
+            EmptyView()   // Meeting / Night: nothing
         } else if state.activeIntegrations.contains(FocusTimer.pillId), timer.isActive {
             // A running (or paused, or just finished) timer comes first
             CompactFocusTimer()
@@ -200,6 +212,8 @@ struct CompactTrailing: View {
             CompactNowPlaying(artwork: spotify.artwork, isPlaying: true,
                               brand: Color(hex: SpotifyController.green))
                 .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        } else if modes.mode != .everything {
+            EmptyView()   // Study: timer and music only, no calendar or mini grid
         } else if state.activeIntegrations.contains(CalendarController.pillId) {
             // An event within 30 minutes takes the slot; re-checked once a minute
             TimelineView(.periodic(from: .now, by: 60)) { context in

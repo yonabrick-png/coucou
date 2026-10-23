@@ -23,6 +23,12 @@ struct IslandRootView: View {
 struct IslandContainer: View {
     @ObservedObject var state: AppState
     @ObservedObject private var demoEngine = DemoEngine.shared
+    #if !APPSTORE
+    @ObservedObject private var modes = NotchModes.shared
+    private var mochiHidden: Bool { modes.hidesMochi }
+    #else
+    private var mochiHidden: Bool { false }
+    #endif
     @State private var islandWidth:  CGFloat = IslandConst.notchWidth
     @State private var islandHeight: CGFloat = IslandConst.notchHeight
     @State private var cornerRadius: CGFloat = IslandConst.roundedCorner
@@ -98,8 +104,9 @@ struct IslandContainer: View {
                     Rectangle().frame(width: islandWidth,
                                       height: state.mode == .expanded ? 320 : islandHeight)
                 }
-                .opacity(uploadActive || greetingActive ? 0 : 1)
-                .animation(.easeInOut(duration: 0.25), value: uploadActive || greetingActive)
+                // Focus mode: Mochi steps aside for the music
+                .opacity(uploadActive || greetingActive || mochiHidden ? 0 : 1)
+                .animation(.easeInOut(duration: 0.25), value: uploadActive || greetingActive || mochiHidden)
 
             CountdownBar(state: state, islandW: islandWidth)
 
@@ -119,6 +126,12 @@ struct IslandContainer: View {
             Group {
                 if state.mode == .compact {
                     #if !APPSTORE
+                    // Focus: the cover on the left where Mochi stands (Dynamic Island style)
+                    if mochiHidden {
+                        CompactFocusLeading()
+                            .scaleEffect(IslandRestingLayout(width: islandWidth, height: islandHeight).miniGridScale)
+                            .position(x: 40, y: islandHeight / 2)
+                    }
                     // Cover + bars while music plays, the mini grid otherwise
                     CompactTrailing(state: state)
                         .scaleEffect(IslandRestingLayout(width: islandWidth, height: islandHeight).miniGridScale)
@@ -526,6 +539,19 @@ struct IslandContentView: View {
 
 struct IslandHeader: View {
     @ObservedObject var state: AppState
+    #if !APPSTORE
+    @ObservedObject private var modes = NotchModes.shared
+
+    static func tabIcon(_ view: IslandView) -> String {
+        switch view {
+        case .overview: return NotchModes.shared.mode == .focus ? "headphones" : "house.fill"
+        case .garmin:   return "figure.run"
+        case .weather:  return "cloud.sun.fill"
+        case .prompt:   return "bubble.left.fill"
+        default:        return "circle"
+        }
+    }
+    #endif
     @State private var gearHovered  = false
     @State private var soundHovered = false
     @State private var closeHovered = false
@@ -538,21 +564,17 @@ struct IslandHeader: View {
         HStack(spacing: 0) {
             // Left: tab capsules
             HStack(spacing: 5) {
-                TabButton(icon: "house.fill", view: .overview, state: state)
-                TabButton(icon: "bubble.left.fill", view: .prompt, state: state, preAction: {
-                    #if !APPSTORE
-                    if state.promptContext == nil {
-                        state.promptContext = WindowContextCapture.captureActive(from: state.lastExternalApp)
-                    }
-                    #endif
-                })
                 #if !APPSTORE
-                TabButton(icon: "figure.run", view: .garmin, state: state)
-                TabButton(icon: "cloud.sun.fill", view: .weather, state: state)
+                // Tabs follow the notch mode. The Claude chat (.prompt) is kept in the code
+                // but has no tab for now; no ＋ tab either (drop files on the notch → Shelf).
+                ForEach(modes.tabs, id: \.self) { view in
+                    TabButton(icon: Self.tabIcon(view), view: view, state: state)
+                }
                 #else
+                TabButton(icon: "house.fill", view: .overview, state: state)
+                TabButton(icon: "bubble.left.fill", view: .prompt, state: state, preAction: {})
                 TabButton(icon: "plus", view: .upload, state: state)
                 #endif
-                // GitHub build: no ＋ tab — drop files straight onto the notch (they go to the Shelf)
             }
             .padding(.leading, 14)
 
@@ -568,6 +590,8 @@ struct IslandHeader: View {
                 } else if state.view == .overview && state.showCodexPlanInNotch {
                     ClaudePlanHeaderPill(state: state, codex: true)
                 }
+                // Everything / Focus / Study / Meeting / Night
+                NotchModeButton()
                 #endif
                 HStack(spacing: 14) {
                     Button(action: {

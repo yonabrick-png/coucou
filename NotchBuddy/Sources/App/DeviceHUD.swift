@@ -43,6 +43,7 @@ final class DeviceHUD: ObservableObject {
     }
 
     func show(_ hud: HUD, for seconds: Double = 4) {
+        guard NotchModes.shared.allowsPopup(id: hud.id) else { return }   // the mode decides
         if current == nil { revealedFromHidden = AppState.shared.mode == .hidden }
         withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) { current = hud }
         NotificationCenter.default.post(name: .islandPopupReveal, object: nil)

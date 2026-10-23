@@ -213,8 +213,7 @@ struct CompactNoteRow: View {
         .onChange(of: ringing) { _, r in if r { startGlow() } else { glow = false } }
         .help(helpText)
         .contextMenu {
-            Button(String(localized: "Ask Claude")) { ClaudeChatDraft.open(with: note.text) }
-            Divider()
+            // "Ask Claude" (ClaudeChatDraft.open) is off while the Claude chat tab is hidden
             Button(note.done ? String(localized: "Mark as not done") : String(localized: "Mark as done")) {
                 NotesStore.shared.toggleDone(note)
             }

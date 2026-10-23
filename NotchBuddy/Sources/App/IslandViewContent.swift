@@ -8,7 +8,12 @@ struct IslandViewContent: View {
 
     var body: some View {
         switch view {
-        case .overview:  OverviewView(state: state)
+        case .overview:
+            #if !APPSTORE
+            OverviewOrFocus(state: state)   // Focus mode: only the big music player
+            #else
+            OverviewView(state: state)
+            #endif
         case .empty:     EmptyStateView(state: state)
         case .approval:  ApprovalView(state: state)
         case .question:  QuestionView(state: state)
@@ -68,6 +73,22 @@ struct IslandViewContent: View {
 
 // MARK: - Overview
 
+#if !APPSTORE
+/// Home follows the notch mode: Focus shows only the music player.
+struct OverviewOrFocus: View {
+    @ObservedObject var state: AppState
+    @ObservedObject private var modes = NotchModes.shared
+
+    var body: some View {
+        if modes.mode == .focus {
+            FocusMusicView(state: state).transition(.opacity)
+        } else {
+            OverviewView(state: state).transition(.opacity)
+        }
+    }
+}
+#endif
+
 struct OverviewView: View {
     @ObservedObject var state: AppState
     @State private var showingN8nDetail = false
@@ -76,9 +97,12 @@ struct OverviewView: View {
     var agent: AgentTask? { state.focusTask }
 
     #if !APPSTORE
+    /// The focused pill must be one that shows: not the Claude pill, and one the mode allows.
     private func moveFocusOffDormantClaude() {
-        guard let focus = state.focusTask, focus.isDormantClaudePill,
-              let other = state.tasks.first(where: { !$0.isDormantClaudePill }) else { return }
+        let modes = NotchModes.shared
+        func visible(_ t: AgentTask) -> Bool { !t.isDormantClaudePill && modes.allowsPill(t.id) }
+        guard let focus = state.focusTask, !visible(focus),
+              let other = state.tasks.first(where: visible) else { return }
         state.setFocus(other.id)
     }
     #endif
@@ -210,6 +234,7 @@ struct OverviewView: View {
         // The Claude pill hides while no session runs: don't leave it in focus
         .onAppear { moveFocusOffDormantClaude() }
         .onChange(of: state.tasks.map(\.id)) { _, _ in moveFocusOffDormantClaude() }
+        .onReceive(NotificationCenter.default.publisher(for: .notchModeChanged)) { _ in moveFocusOffDormantClaude() }
         #endif
         .onChange(of: state.focusId) { _, new in
             #if !APPSTORE
@@ -4115,10 +4140,13 @@ struct TickerShimmerText: View {
 struct AgentPillsView: View {
     @ObservedObject var state: AppState
     @State private var swapping = false
+    #if !APPSTORE
+    @ObservedObject private var modes = NotchModes.shared
+    #endif
 
     private var others: [AgentTask] {
         #if !APPSTORE
-        state.tasks.filter { $0.id != state.focusId && !$0.isDormantClaudePill }
+        state.tasks.filter { $0.id != state.focusId && !$0.isDormantClaudePill && modes.allowsPill($0.id) }
         #else
         state.tasks.filter { $0.id != state.focusId }
         #endif

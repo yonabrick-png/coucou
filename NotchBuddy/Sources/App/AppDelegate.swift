@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     private(set) var islandController: IslandWindowController?
     private var demoMenuItem: NSMenuItem?
+    private var notchModeMenu: NSMenu?
 
     func applicationWillTerminate(_ notification: Notification) {
         #if !APPSTORE
@@ -112,6 +113,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: NSLocalizedString("Weekly recap", comment: ""), action: #selector(openWeeklyRecap), keyEquivalent: "")
         #if !APPSTORE
+        // Notch mode: the way back from Meeting / Night, when the notch is hidden
+        let modeMenu = NSMenu()
+        for m in NotchModes.Mode.allCases {
+            let item = NSMenuItem(title: "\(m.title) — \(m.summary)", action: #selector(chooseNotchMode(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = m.rawValue
+            item.image = NSImage(systemSymbolName: m.icon, accessibilityDescription: m.title)
+            modeMenu.addItem(item)
+        }
+        let modeItem = NSMenuItem(title: String(localized: "Notch mode"), action: nil, keyEquivalent: "")
+        modeItem.submenu = modeMenu
+        notchModeMenu = modeMenu
+        menu.addItem(modeItem)
+        menu.addItem(.separator())
         menu.addItem(withTitle: String(localized: "Show daily brief"), action: #selector(showDailyBrief), keyEquivalent: "")
         menu.addItem(withTitle: String(localized: "hub.menu"), action: #selector(openFlowHub), keyEquivalent: "")
         #endif
@@ -139,6 +154,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     #if !APPSTORE
+    @objc private func chooseNotchMode(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let m = NotchModes.Mode(rawValue: raw) else { return }
+        NotchModes.shared.choose(m)
+    }
+
     @objc private func showDailyBrief() {
         DailyBrief.show()
     }
@@ -300,6 +320,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = CalendarController.shared
         _ = ShelfStore.shared
         _ = FocusTimer.shared
+        _ = NotchModes.shared   // Everything / Focus / Study / Meeting / Night (after the timer it follows)
         _ = NotesStore.shared
         _ = GarminStore.shared
         _ = DeviceHUD.shared
@@ -322,5 +343,10 @@ extension AppDelegate: NSMenuDelegate {
         demoMenuItem?.title = DemoEngine.shared.isActive
             ? NSLocalizedString("demo.stop", comment: "")
             : NSLocalizedString("Demo mode", comment: "")
+        #if !APPSTORE
+        // A check next to the current notch mode
+        let current = NotchModes.shared.mode.rawValue
+        notchModeMenu?.items.forEach { $0.state = ($0.representedObject as? String) == current ? .on : .off }
+        #endif
     }
 }

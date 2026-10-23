@@ -55,6 +55,7 @@
 		1D23613B270FE8B11C5E27A7 /* IslandDisplayChoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A09E73F1E58019EF6EA2A62 /* IslandDisplayChoice.swift */; };
 		1D4CE0CCD2B5A0FFE50C7F06 /* TerminalTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87AF6F7A027AB1D46309DD49 /* TerminalTarget.swift */; };
 		1D8D0A9ED21DF80158588E28 /* DeviceHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC584DF0885E31BA79DAA0A /* DeviceHUD.swift */; };
+		1D937AAB2286A2800057517D /* NotchModes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589018B8531AFB3EA6C68522 /* NotchModes.swift */; };
 		1DAB0704A136FF8E6FB34191 /* ClaudeResponseText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 444604C7E2C530B664849EF9 /* ClaudeResponseText.swift */; };
 		1DCF28998358810CDBC93F91 /* ClaudeHookDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7D927F6BB2667D37AA963 /* ClaudeHookDetection.swift */; };
 		1E55440B97C640993E93D04D /* DiffEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32FB972D02162720E566674 /* DiffEngine.swift */; };
@@ -194,6 +195,7 @@
 		79BD9FD7FECD5666003F4025 /* CalendarViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0799E1D67F383F58AB67DB7 /* CalendarViews.swift */; };
 		7A449E237CAAB62758508C7C /* RecapStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FB882D49084DEA6A10DB4D /* RecapStore.swift */; };
 		7AEED9FBB924F0DD1D07E1A5 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B2AA83D80260660475FAB052 /* Localizable.xcstrings */; };
+		7B0916A17293124EC1C0219B /* FocusMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2DFB9252C4BB4CF82A436DC /* FocusMusicView.swift */; };
 		7B7CBFAADFF687004012609D /* FlowHubWords.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A34DE2886E394C879CF64 /* FlowHubWords.swift */; };
 		7C75CCB3DC0116D8D3B12313 /* AskQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB84A66045EB20CAC93A8A6 /* AskQuestion.swift */; };
 		7CF3242DAD44B442297116E5 /* Decisions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F5AFDE37A03A1C25EB262 /* Decisions.swift */; };
@@ -409,12 +411,14 @@
 		F6CA56F362902839EF9A3E2E /* PhoneAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 60401D1023D17C3FD30D7113 /* PhoneAssets.xcassets */; };
 		F6D57EEBD7E937EFD2B715CF /* ClaudeHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0F0D0F67E7C56B9E37E7648 /* ClaudeHost.swift */; };
 		F7162101509D8CAE59711602 /* VoiceSpeaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD11C7925B0A7831BFC2199C /* VoiceSpeaker.swift */; };
+		F80DC82190E0532CA5522484 /* NotchModes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589018B8531AFB3EA6C68522 /* NotchModes.swift */; };
 		F8F95EAD88F70E0A147D1662 /* MacDictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6544ED02D945CF9F00647AD1 /* MacDictation.swift */; };
 		F9445A71BBF9E4D20224238E /* QuestionPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C6993B34A0FFF8E3D454ADC /* QuestionPayload.swift */; };
 		F9685A58729FE64B23FCCFC5 /* VoiceResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C432FE1286945E42D3E11D7 /* VoiceResultView.swift */; };
 		F9A7F77E465FF2F67A116C02 /* FocusTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95EC90DBC381292B0E98FA3 /* FocusTimer.swift */; };
 		FAD78D74C6906D4EC8AA4101 /* UploadSequenceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */; };
 		FB063FE6B8A4BB8FBAAF56CB /* LiveActivityLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA2D136C81C6D930C5357BD /* LiveActivityLink.swift */; };
+		FB21D1A1A3CE0165ED5A06C3 /* FocusMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2DFB9252C4BB4CF82A436DC /* FocusMusicView.swift */; };
 		FB58020A389126865363C342 /* WeeklyRecapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888B3E1420BCB6292BDC8117 /* WeeklyRecapView.swift */; };
 		FBBC4CDE82B5886A83A27D7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 506824380E9C80B9BC6DCE72 /* Assets.xcassets */; };
 		FC71883015261D23137D6E9A /* GarminFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB46E35321C30493A02C715 /* GarminFullView.swift */; };
@@ -519,6 +523,7 @@
 		5108F622EF0C553F053716C2 /* SessionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStatus.swift; sourceTree = "<group>"; };
 		54E47E39D2D52584FA219FA1 /* LiveVoiceControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveVoiceControls.swift; sourceTree = "<group>"; };
 		56A2317343D062ACCAF4E5BD /* DictationTranscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationTranscript.swift; sourceTree = "<group>"; };
+		589018B8531AFB3EA6C68522 /* NotchModes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchModes.swift; sourceTree = "<group>"; };
 		5C3E2269A202B640E7F3B5E0 /* CoucouWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = CoucouWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5C406C508A86E215B3CBE3FC /* CoucouControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoucouControl.swift; sourceTree = "<group>"; };
 		60401D1023D17C3FD30D7113 /* PhoneAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = PhoneAssets.xcassets; sourceTree = "<group>"; };
@@ -620,6 +625,7 @@
 		D0F0D0F67E7C56B9E37E7648 /* ClaudeHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeHost.swift; sourceTree = "<group>"; };
 		D1A7C62058BB0C9D0DF58DCB /* VoiceIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceIntent.swift; sourceTree = "<group>"; };
 		D1D96E57E8DADE6B82628E3E /* OpenLeadMochiIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenLeadMochiIntent.swift; sourceTree = "<group>"; };
+		D2DFB9252C4BB4CF82A436DC /* FocusMusicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusMusicView.swift; sourceTree = "<group>"; };
 		D4543CB771E0B723783F529E /* VoiceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSettings.swift; sourceTree = "<group>"; };
 		D6DF93125491729E14636AD8 /* CoucouNotificationContent.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = CoucouNotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D710BD7834228045869D0184 /* IslandWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandWindowController.swift; sourceTree = "<group>"; };
@@ -734,6 +740,7 @@
 				8436291D94C826F1D9DA3130 /* FlowSettingsBox.swift */,
 				F7124E98A85D75D3378F0AC8 /* FlowStore.swift */,
 				324FEF6CF23F9D4A95799431 /* FlowText.swift */,
+				D2DFB9252C4BB4CF82A436DC /* FocusMusicView.swift */,
 				D95EC90DBC381292B0E98FA3 /* FocusTimer.swift */,
 				87278A28B2614BCC8543D997 /* FocusTimerViews.swift */,
 				DDB46E35321C30493A02C715 /* GarminFullView.swift */,
@@ -758,6 +765,7 @@
 				4F142FB3952B5F0639383047 /* MusicController.swift */,
 				B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */,
 				F1BD8F3CAA60CF37640759E1 /* NotchBuddyApp.swift */,
+				589018B8531AFB3EA6C68522 /* NotchModes.swift */,
 				D0E5A3ADB1304C23C4AEDD48 /* NoteAudio.swift */,
 				74146BD3F4B9884F6A43936F /* NoteModels.swift */,
 				A019D38A8F4C379BDC166436 /* NotesStore.swift */,
@@ -1241,6 +1249,7 @@
 				D4E60449D7E33D93016192EC /* FlowSettingsBox.swift in Sources */,
 				D00A95A24714141AB82621BE /* FlowStore.swift in Sources */,
 				D1C243401794E8BB087D8B10 /* FlowText.swift in Sources */,
+				7B0916A17293124EC1C0219B /* FocusMusicView.swift in Sources */,
 				F9A7F77E465FF2F67A116C02 /* FocusTimer.swift in Sources */,
 				0F5F48C12CE62BACD6A40FF8 /* FocusTimerViews.swift in Sources */,
 				FC71883015261D23137D6E9A /* GarminFullView.swift in Sources */,
@@ -1275,6 +1284,7 @@
 				5C6D0BC8C546718CAA82BF90 /* MusicController.swift in Sources */,
 				0A267EE2955C7AD8E02A296C /* N8nPoller.swift in Sources */,
 				06BF5FD95E03010CAFDBF2D0 /* NotchBuddyApp.swift in Sources */,
+				F80DC82190E0532CA5522484 /* NotchModes.swift in Sources */,
 				F032CA1CBF8253D9E3981A90 /* NoteAudio.swift in Sources */,
 				A5AC7A40E65A47174367DBC9 /* NoteModels.swift in Sources */,
 				A7B04680036A2443AC6162CD /* NoteTaker.swift in Sources */,
@@ -1482,6 +1492,7 @@
 				5A3DA40DB6C8161E6CB504C7 /* FlowSettingsBox.swift in Sources */,
 				EAEC8E117E130E5902295F73 /* FlowStore.swift in Sources */,
 				485EF08DEE9EA88DA565EC7D /* FlowText.swift in Sources */,
+				FB21D1A1A3CE0165ED5A06C3 /* FocusMusicView.swift in Sources */,
 				6B2DC44544B51E3AFB896479 /* FocusTimer.swift in Sources */,
 				E4CCE0817B9C6C451C935247 /* FocusTimerViews.swift in Sources */,
 				60F734EEB13D98B4AD26AA28 /* GarminFullView.swift in Sources */,
@@ -1516,6 +1527,7 @@
 				9C653B8291EFFA414565E8A8 /* MusicController.swift in Sources */,
 				160EDB9D06275E2607DA5151 /* N8nPoller.swift in Sources */,
 				DE05D09A32117582AC93A24A /* NotchBuddyApp.swift in Sources */,
+				1D937AAB2286A2800057517D /* NotchModes.swift in Sources */,
 				C8F0DA5F0EF2503581EFE5A1 /* NoteAudio.swift in Sources */,
 				4D3F75B2546ACB133C604638 /* NoteModels.swift in Sources */,
 				DCD9F5ECAFDBC52F388976C2 /* NoteTaker.swift in Sources */,

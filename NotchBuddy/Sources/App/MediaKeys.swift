@@ -57,8 +57,8 @@ final class MediaKeys {
 
     /// Returns true when the key was handled (and must not reach macOS).
     fileprivate func handle(key: Int32, down: Bool, fine: Bool) -> Bool {
-        // The island is open: let macOS show its own box (ours lives in the closed notch)
-        guard AppState.shared.mode != .expanded else { return false }
+        // The island is open, or hidden by Meeting / Night: let macOS show its own box
+        guard AppState.shared.mode != .expanded, !NotchModes.shared.hidesIsland else { return false }
         switch key {
         case Self.soundUp, Self.soundDown, Self.mute:
             guard let device = Volume.defaultOutput(), Volume.hasVolume(device) else { return false }

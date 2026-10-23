@@ -380,7 +380,17 @@ final class HookServer: @unchecked Sendable {
         if coucouKind == "ask_user_question" {
             let toolInput = payload["tool_input"] as? [String: Any] ?? [:]
             if let parsed = AskQuestion.parse(toolInput: toolInput) {
-                Task { @MainActor in self.processQuestionRequest(fd: fd, parsed: parsed, payload: payload) }
+                Task { @MainActor in
+                    #if !APPSTORE
+                    // Meeting / Night: the question is asked in the terminal instead
+                    if NotchModes.shared.hidesIsland {
+                        self.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
+                        close(fd)
+                        return
+                    }
+                    #endif
+                    self.processQuestionRequest(fd: fd, parsed: parsed, payload: payload)
+                }
             } else {
                 // Malformed payload — fall back: send ask so Claude Code re-asks in terminal
                 sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
@@ -840,6 +850,18 @@ final class HookServer: @unchecked Sendable {
             }
             return
         }
+
+        #if !APPSTORE
+        // Meeting / Night: the notch stays hidden, so Claude asks in its own terminal
+        if NotchModes.shared.hidesIsland {
+            nbLog("PermissionRequest \(tool): notch hidden (\(NotchModes.shared.mode.rawValue)), asked in the terminal")
+            Task.detached { [weak self] in
+                self?.sendLine(fd: fd, text: #"{"permissionDecision":"ask"}"#)
+                close(fd)
+            }
+            return
+        }
+        #endif
 
         let command = toolInput["command"] as? String ?? tool
 

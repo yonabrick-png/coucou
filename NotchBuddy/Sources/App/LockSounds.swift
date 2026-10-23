@@ -20,6 +20,8 @@ final class LockSounds {
         })
         tokens.append(center.addObserver(forName: .init("com.apple.screenIsUnlocked"), object: nil, queue: .main) { _ in
             Task { @MainActor in
+                // Night ends at the first unlock of the morning
+                NotchModes.shared.unlocked()
                 // Let the lock screen fade out first, then greet
                 try? await Task.sleep(for: .milliseconds(350))
                 SoundEngine.shared.play("greet")
