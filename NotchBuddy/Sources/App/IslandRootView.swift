@@ -517,6 +517,26 @@ struct IslandContentView: View {
     #endif
 
     var body: some View {
+        #if !APPSTORE
+        if focusIsland {
+            // Only the music player, at the small island's own width. (The usual stack keeps
+            // every view mounted, and the 640-pt-wide ones would push the player off-centre.)
+            FocusMusicView(state: state)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.horizontal, 10)
+                .padding(.top, 8)
+                .padding(.bottom, 10)
+                .foregroundColor(Color(hex: "#F5F6F8"))
+                .transition(.opacity)
+        } else {
+            standard
+        }
+        #else
+        standard
+        #endif
+    }
+
+    private var standard: some View {
         VStack(spacing: 0) {
             IslandHeader(state: state)
                 .frame(height: focusIsland ? 0 : 34)
