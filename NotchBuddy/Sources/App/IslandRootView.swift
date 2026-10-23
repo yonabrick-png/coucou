@@ -182,6 +182,19 @@ struct IslandContainer: View {
             guard state.mode == .expanded, state.view == .prompt else { return }
             withAnimation(openSpring) { islandHeight = chatPromptHeight }
         }
+        #if !APPSTORE
+        // A new notch mode while open: Focus shrinks home to the small music island
+        .onChange(of: modes.mode) { _, _ in
+            guard state.mode == .expanded else { return }
+            let (w, h) = islandSize(mode: .expanded, view: state.view,
+                                    progress: state.uploadProgress,
+                                    nw: state.notchWidth, nh: state.notchHeight)
+            withAnimation(openSpring) {
+                islandWidth  = w
+                islandHeight = state.view == .prompt ? chatPromptHeight : h
+            }
+        }
+        #endif
         .onAppear {
             let (w, h) = islandSize(mode: state.mode, view: state.view,
                                     progress: state.uploadProgress,
@@ -495,12 +508,20 @@ struct CountdownBar: View {
 
 struct IslandContentView: View {
     @ObservedObject var state: AppState
+    #if !APPSTORE
+    @ObservedObject private var modes = NotchModes.shared
+    /// Focus mode on home: the small music island, no header row.
+    private var focusIsland: Bool { modes.mode == .focus && state.view == .overview }
+    #else
+    private var focusIsland: Bool { false }
+    #endif
 
     var body: some View {
         VStack(spacing: 0) {
             IslandHeader(state: state)
-                .frame(height: 34)
-                .opacity(state.view == .confused ? 0 : 1)
+                .frame(height: focusIsland ? 0 : 34)
+                .opacity(state.view == .confused || focusIsland ? 0 : 1)
+                .allowsHitTesting(!focusIsland)
                 .animation(.easeInOut(duration: 0.2), value: state.view == .confused)
 
             ZStack {
@@ -508,8 +529,11 @@ struct IslandContentView: View {
                     let active = state.view == v
                     // Views that fill available height instead of the fixed 98pt content frame:
                     // chat (prompt) is always flexible; mail is flexible only when active so
-                    // it doesn't push the ZStack taller when inactive.
+                    // it doesn't push the ZStack taller when inactive. The GitHub build's big
+                    // tabs (Garmin, Weather), the daily brief and the Focus island too.
                     let isTall = v == .prompt || (v == .mail && active)
+                        || ([.garmin, .weather, .brief].contains(v) && active)
+                        || (v == .overview && active && focusIsland)
                     let anim: Animation = active
                         ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
                         : .easeIn(duration: 0.16)

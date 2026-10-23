@@ -62,7 +62,11 @@ final class NotchModes: ObservableObject {
         }
     }
 
-    @Published private(set) var mode: Mode
+    @Published private(set) var mode: Mode {
+        didSet { Self.focusActive = mode == .focus }
+    }
+    /// Read by `islandSize` (a plain function) to make the Focus island small.
+    nonisolated(unsafe) static var focusActive = false
     /// The mode was switched on by Coucou (study session, meeting), not by you.
     @Published private(set) var automatic = false
 
@@ -79,6 +83,7 @@ final class NotchModes: ObservableObject {
         mode = Mode(rawValue: d.string(forKey: Self.modeKey) ?? "") ?? .everything
         before = Mode(rawValue: d.string(forKey: Self.beforeKey) ?? "") ?? .everything
         automatic = d.bool(forKey: Self.autoKey)
+        Self.focusActive = mode == .focus
 
         // Study comes and goes with study sessions
         FocusTimer.shared.$phase

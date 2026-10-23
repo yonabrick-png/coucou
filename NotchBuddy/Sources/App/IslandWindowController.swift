@@ -2087,6 +2087,12 @@ func islandSize(mode: IslandMode, view: IslandView,
         if view == .question, let h = QuestionLayout.height {
             return (IslandConst.expandedWidth, h)
         }
+        #if !APPSTORE
+        // Focus mode: home is a small music island, like an expanded Dynamic Island
+        if view == .overview && NotchModes.focusActive {
+            return (nw + 236, nh + 98)
+        }
+        #endif
         return (IslandConst.expandedWidth, layout.height)
     }
 }
