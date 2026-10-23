@@ -95,59 +95,52 @@ struct FocusMusicView: View {
 
     private func player(_ t: FocusNowPlaying.Track) -> some View {
         let accent = ArtworkAccent.color(for: t.artwork) ?? t.brand
-        return VStack(spacing: 6) {
-            HStack(spacing: 10) {
+        return VStack(spacing: 7) {
+            // Cover · song · bars · mode
+            HStack(spacing: 9) {
                 NowPlayingArtwork(image: t.artwork, accent: accent)
-                    .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: accent.opacity(t.isPlaying ? 0.45 : 0), radius: 6)
+                    .frame(width: 34, height: 34)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .shadow(color: accent.opacity(t.isPlaying ? 0.5 : 0), radius: 7)
+                    .scaleEffect(t.isPlaying ? 1 : 0.92)
+                    .animation(.spring(response: 0.35, dampingFraction: 1), value: t.isPlaying)
                     .onTapGesture { t.actions.openApp() }
-                VStack(alignment: .leading, spacing: 1) {
-                    MarqueeText(text: t.title, font: .system(size: 13, weight: .semibold), color: .white)
+                    .help(t.actions.openHelp)
+                VStack(alignment: .leading, spacing: 0) {
+                    MarqueeText(text: t.title, font: .system(size: 12.5, weight: .semibold), color: .white)
+                        .tracking(-0.1)
                     Text(t.subtitle)
                         .font(.system(size: 10.5))
-                        .foregroundColor(Color.white.opacity(0.55))
+                        .foregroundColor(Color.white.opacity(0.5))
                         .lineLimit(1)
                 }
                 SoundBars(isPlaying: t.isPlaying, color: accent)
-                    .frame(width: 16, height: 13)
+                    .frame(width: 14, height: 12)
+                FocusModeDot()
             }
 
+            // Slim seek bar with small times at both ends
             TimelineView(.animation(minimumInterval: 0.5, paused: !t.isPlaying)) { context in
                 NowPlayingProgress(position: t.actions.position(context.date), duration: t.info.duration,
                                    accent: accent, canSeek: t.info.canSeek, onSeek: { t.actions.seek($0) })
             }
 
-            ZStack {
-                HStack(spacing: 18) {
-                    NowPlayingIconButton(icon: "shuffle", size: 10,
-                                         tint: t.info.shuffling ? accent : Color(hex: "#6B7079"),
-                                         help: "Shuffle") { t.actions.setShuffling(!t.info.shuffling) }
-                    NowPlayingIconButton(icon: "backward.fill", size: 13, tint: Color(hex: "#E4E6EA"),
-                                         help: "Previous") { t.actions.previous() }
-                    Button(action: { t.actions.playPause() }) {
-                        ZStack {
-                            Circle().fill(Color.white)
-                            Image(systemName: t.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundColor(Color(hex: "#0E0F11"))
-                                .offset(x: t.isPlaying ? 0 : 1)
-                                .contentTransition(.symbolEffect(.replace))
-                        }
-                        .frame(width: 26, height: 26)
-                        .shadow(color: accent.opacity(0.4), radius: 6)
-                    }
-                    .buttonStyle(NowPlayingPressStyle())
-                    NowPlayingIconButton(icon: "forward.fill", size: 13, tint: Color(hex: "#E4E6EA"),
-                                         help: "Next") { t.actions.next() }
-                    NowPlayingIconButton(icon: "repeat", size: 10,
-                                         tint: t.info.repeating ? accent : Color(hex: "#6B7079"),
-                                         help: "Repeat") { t.actions.setRepeating(!t.info.repeating) }
+            // ⏮ ▶︎ ⏭ — plain glyphs, like the iPhone's island
+            HStack(spacing: 30) {
+                NowPlayingIconButton(icon: "backward.fill", size: 13, tint: Color.white.opacity(0.85),
+                                     help: "Previous") { t.actions.previous() }
+                Button(action: { t.actions.playPause() }) {
+                    Image(systemName: t.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                        .contentTransition(.symbolEffect(.replace))
+                        .frame(width: 24, height: 22)
+                        .contentShape(Rectangle())
                 }
-                HStack {
-                    Spacer()
-                    FocusModeDot()
-                }
+                .buttonStyle(NowPlayingPressStyle())
+                .help(t.isPlaying ? String(localized: "Pause") : String(localized: "Play"))
+                NowPlayingIconButton(icon: "forward.fill", size: 13, tint: Color.white.opacity(0.85),
+                                     help: "Next") { t.actions.next() }
             }
         }
         .padding(.horizontal, 12)
@@ -170,10 +163,10 @@ struct FocusModeDot: View {
             }
         } label: {
             Image(systemName: modes.mode.icon)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(Color(hex: modes.mode.colorHex))
-                .frame(width: 20, height: 20)
-                .background(Circle().fill(Color(hex: modes.mode.colorHex).opacity(0.16)))
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundColor(Color(hex: modes.mode.colorHex).opacity(0.9))
+                .frame(width: 16, height: 16)
+                .background(Circle().fill(Color.white.opacity(0.08)))
         }
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)

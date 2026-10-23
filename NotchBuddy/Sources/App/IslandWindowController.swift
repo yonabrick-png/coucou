@@ -2091,7 +2091,7 @@ func islandSize(mode: IslandMode, view: IslandView,
         // Focus mode: home is a small music island, like an expanded Dynamic Island
         if view == .overview && NotchModes.focusActive {
             // Room for the whole player (cover row, seek bar, controls) under the notch
-            return (nw + 250, nh + 116)
+            return (nw + 216, nh + 100)
         }
         #endif
         return (IslandConst.expandedWidth, layout.height)
