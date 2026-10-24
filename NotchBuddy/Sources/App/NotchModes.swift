@@ -195,9 +195,16 @@ final class NotchModes: ObservableObject {
         }
     }
 
+    /// Pills the home screen may show. Claude sessions (Claude Code, Claude Desktop, other
+    /// agents) never get a pill: their permission requests and questions still open their own views.
+    static let homePills: Set<String> = [
+        "integration_music", "integration_spotify", "integration_calendar",
+        "integration_shelf", "integration_timer", "integration_notes",
+    ]
+
     func allowsPill(_ id: String) -> Bool {
         switch mode {
-        case .everything: return true
+        case .everything: return Self.homePills.contains(id)
         case .study: return ["integration_timer", "integration_music", "integration_spotify", "integration_notes"].contains(id)
         case .focus, .meeting, .night: return false
         }

@@ -786,7 +786,7 @@ struct CompactMiniGrid: View {
 
     private var others: [AgentTask] {
         #if !APPSTORE
-        Array(state.tasks.filter { $0.id != state.focusId && !$0.isDormantClaudePill }.prefix(4))
+        Array(state.tasks.filter { $0.id != state.focusId && NotchModes.shared.allowsPill($0.id) }.prefix(4))
         #else
         Array(state.tasks.filter { $0.id != state.focusId }.prefix(4))
         #endif
