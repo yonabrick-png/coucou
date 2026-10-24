@@ -87,6 +87,7 @@ final class GarminStore: ObservableObject {
 
     @Published private(set) var snapshot: Snapshot?
     @Published private(set) var details: Details?
+    @Published private(set) var vitals: Vitals?
     @Published private(set) var missing = false
     /// Redline's fetcher is running (pulling today's numbers from Garmin).
     @Published private(set) var fetching = false
@@ -136,6 +137,7 @@ final class GarminStore: ObservableObject {
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
         snapshot = Self.parse(json)
         details = Self.parseDetails(json)
+        vitals = Self.parseVitals(json)
         loadedAt = modified
         syncTaskName()
     }
