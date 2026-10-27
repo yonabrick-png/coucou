@@ -36,6 +36,12 @@ struct IslandViewContent: View {
             #else
             EmptyView()
             #endif
+        case .school:
+            #if !APPSTORE
+            SchoolFullView(state: state)
+            #else
+            EmptyView()
+            #endif
         case .weather:
             #if !APPSTORE
             WeatherFullView(state: state)

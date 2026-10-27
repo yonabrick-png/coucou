@@ -189,8 +189,9 @@ final class NotchModes: ObservableObject {
     /// Header tabs for this mode.
     var tabs: [IslandView] {
         switch mode {
-        case .everything: return [.overview, .garmin, .weather]
-        case .focus, .study: return [.overview]
+        case .everything: return [.overview, .school, .garmin, .weather]
+        case .study: return [.overview, .school]
+        case .focus: return [.overview]
         case .meeting, .night: return []
         }
     }

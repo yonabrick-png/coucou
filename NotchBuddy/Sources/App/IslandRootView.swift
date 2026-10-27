@@ -552,7 +552,7 @@ struct IslandContentView: View {
                     // it doesn't push the ZStack taller when inactive. The GitHub build's big
                     // tabs (Garmin, Weather), the daily brief and the Focus island too.
                     let isTall = v == .prompt || (v == .mail && active)
-                        || ([.garmin, .weather, .brief].contains(v) && active)
+                        || ([.garmin, .weather, .brief, .school].contains(v) && active)
                         || (v == .overview && active && focusIsland)
                     let anim: Animation = active
                         ? .spring(response: 0.4, dampingFraction: 0.8).delay(0.16)
@@ -591,6 +591,7 @@ struct IslandHeader: View {
         case .overview: return NotchModes.shared.mode == .focus ? "headphones" : "house.fill"
         case .garmin:   return "figure.run"
         case .weather:  return "cloud.sun.fill"
+        case .school:   return "graduationcap.fill"
         case .prompt:   return "bubble.left.fill"
         default:        return "circle"
         }

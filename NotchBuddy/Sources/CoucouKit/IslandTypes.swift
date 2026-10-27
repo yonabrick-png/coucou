@@ -17,6 +17,7 @@ enum IslandView: String, CaseIterable {
     case garmin       // Yehonathan's full Garmin / Redline picture (GitHub build)
     case weather      // the forecast and the best time to run (GitHub build)
     case brief        // the first-open-of-the-day brief (GitHub build)
+    case school       // Yehonathan HQ: lessons, homework, tests (GitHub build)
 }
 
 // MARK: - Bot State
@@ -245,6 +246,7 @@ enum IslandConst {
         // Daily brief: a greeting and a row of small cards, Mochi waving on the left
         .brief:        ViewLayout(height: 196, botX: 58,  botY: nil, botDiameter: 52, agentMode: .none),
         .garmin:       ViewLayout(height: 320, botX: 52,  botY: nil, botDiameter: 44, agentMode: .none),
+        .school:       ViewLayout(height: 320, botX: 52,  botY: nil, botDiameter: 44, agentMode: .none),
     ]
 
     // Project colors — keyed by lowercase display name or slug

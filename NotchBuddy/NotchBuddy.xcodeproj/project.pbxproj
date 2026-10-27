@@ -29,6 +29,7 @@
 		08A485F2AC63FF5298ED897B /* OpenLeadMochiIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D96E57E8DADE6B82628E3E /* OpenLeadMochiIntent.swift */; };
 		091EC3B2F1060D7EE1317E4E /* IslandWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710BD7834228045869D0184 /* IslandWindowController.swift */; };
 		0A267EE2955C7AD8E02A296C /* N8nPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89DA1A0C21AE3535A1760BB /* N8nPoller.swift */; };
+		0A5E291AE472E1EDF8CF3947 /* SchoolStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335F3123359C27BDE194FF0 /* SchoolStore.swift */; };
 		0BD9756F8AD5C1ECA6B604FB /* FlowDictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD4A635006365A493A57B18 /* FlowDictation.swift */; };
 		0D1AD905638B2B021B684A09 /* ServiceDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F64746B2740D5FE26B7E5A /* ServiceDetail.swift */; };
 		0E83C1DD4D20E7FB7A904450 /* VercelPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71718D1B87A39A4879DD2A9D /* VercelPoller.swift */; };
@@ -178,6 +179,7 @@
 		6DDBB5EDE6BEFD4225238C28 /* approval.wav in Resources */ = {isa = PBXBuildFile; fileRef = 11FCBBE20532B1F0A184EA06 /* approval.wav */; };
 		6E62199249141AB73B2DDA7B /* GarminViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3667294A1D4D7BCCD88A1F /* GarminViews.swift */; };
 		6FC65C190ED614C664C9BC17 /* SafeWebURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2FDED98F7F6C755A72C97A3 /* SafeWebURL.swift */; };
+		70F16E0B2B330BF9D5664A92 /* SchoolFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C4F69FC2B62B4A26EEBC23 /* SchoolFullView.swift */; };
 		714B5BB7FFB0C8491AF67AD1 /* VoiceTranscriptHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE925A6844FE3E3C09131CE0 /* VoiceTranscriptHistory.swift */; };
 		718410ED630AE3AC5DF59A95 /* VoiceSpeaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD11C7925B0A7831BFC2199C /* VoiceSpeaker.swift */; };
 		71B737C4550E7917FF8232C1 /* StudyFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A34C2AF36EC313EA1E9CF06 /* StudyFocus.swift */; };
@@ -311,6 +313,7 @@
 		BEC5DDB55B3DA67C61CA8470 /* DesktopMochi.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1DDC96E7967032F5D0BD585 /* DesktopMochi.swift */; };
 		BEFD615300AC249BA958D6C9 /* WeatherStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 381C0A62960EA8D489AAB0A6 /* WeatherStore.swift */; };
 		BF3F437B1FE9C246E9014F76 /* VoiceActionRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2737EC4885ADB8FDDA1C610 /* VoiceActionRunner.swift */; };
+		BF502138A7D7F042B5F92951 /* SchoolFullView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C4F69FC2B62B4A26EEBC23 /* SchoolFullView.swift */; };
 		C07E9A04E827284FDF33DB16 /* ShortcutLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA51E5B140C20812641168EA /* ShortcutLogic.swift */; };
 		C0E18D0F6F5F6D131E6066B8 /* GreetingCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C581F7B1A9F14B281B60063E /* GreetingCanvasView.swift */; };
 		C1402360AC08A829D29DEF53 /* NowPlayingPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E66ACFF9FE45144E7F4DCE /* NowPlayingPlayer.swift */; };
@@ -390,6 +393,7 @@
 		EAEC8E117E130E5902295F73 /* FlowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7124E98A85D75D3378F0AC8 /* FlowStore.swift */; };
 		EB1D9680D3DB0F0707D4A043 /* CodexPlanGauge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73FA4DF1BE5246CCFFB72E5C /* CodexPlanGauge.swift */; };
 		EB23ED9F1C12EA8B54A76A91 /* ResendPoller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B5FDDE03F5F711146937E2 /* ResendPoller.swift */; };
+		EB63A4619F7BF998E3B0DC93 /* SchoolStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E335F3123359C27BDE194FF0 /* SchoolStore.swift */; };
 		EC7904DC421C6EB6DCD77889 /* DenyApprovalIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D849B1A27AD17AEE1C7FFD1A /* DenyApprovalIntent.swift */; };
 		ECECA2F225E82B7C951658D7 /* UploadSequenceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FD65943C32E150F1CD65C31 /* UploadSequenceEngine.swift */; };
 		ED484F8DAC497C77F3E81F0E /* BotEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E6F5FC81429871B6F766A8 /* BotEngine.swift */; };
@@ -588,6 +592,7 @@
 		A14A61070D293AB4BBA303F7 /* NotchBuddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchBuddy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2737EC4885ADB8FDDA1C610 /* VoiceActionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceActionRunner.swift; sourceTree = "<group>"; };
 		A29F4C0B02BE91654D02AA0C /* BotCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BotCanvasView.swift; sourceTree = "<group>"; };
+		A4C4F69FC2B62B4A26EEBC23 /* SchoolFullView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchoolFullView.swift; sourceTree = "<group>"; };
 		A5DC0954D23B69B247578437 /* question.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = question.wav; sourceTree = "<group>"; };
 		A83D5410BD030B243ADDCFF4 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
 		A87F39805C78722F614295B4 /* VoiceAudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAudio.swift; sourceTree = "<group>"; };
@@ -643,6 +648,7 @@
 		DE18399D1CD69468CCF57966 /* MochiActivityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiActivityState.swift; sourceTree = "<group>"; };
 		DE925A6844FE3E3C09131CE0 /* VoiceTranscriptHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceTranscriptHistory.swift; sourceTree = "<group>"; };
 		E18E74B3586BC0861C69E70A /* InstructionComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstructionComposer.swift; sourceTree = "<group>"; };
+		E335F3123359C27BDE194FF0 /* SchoolStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchoolStore.swift; sourceTree = "<group>"; };
 		E5C197BEC2AA1B37DD02B5B6 /* DailyBrief.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBrief.swift; sourceTree = "<group>"; };
 		E6AAC67875F84A862BC2A9AF /* ServiceDetailRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDetailRunner.swift; sourceTree = "<group>"; };
 		E84E5D91129352E8A1D32AA4 /* MochiOutfitDrawing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MochiOutfitDrawing.swift; sourceTree = "<group>"; };
@@ -786,6 +792,8 @@
 				78FB882D49084DEA6A10DB4D /* RecapStore.swift */,
 				61B5FDDE03F5F711146937E2 /* ResendPoller.swift */,
 				B2FDED98F7F6C755A72C97A3 /* SafeWebURL.swift */,
+				A4C4F69FC2B62B4A26EEBC23 /* SchoolFullView.swift */,
+				E335F3123359C27BDE194FF0 /* SchoolStore.swift */,
 				7C1A7D5CBE2AC084A10C5FF3 /* SettingsView.swift */,
 				C9D8E0B05B720E37326469D9 /* ShelfStore.swift */,
 				8C9EAF4ED0A4A62160CAFA05 /* ShelfViews.swift */,
@@ -1310,6 +1318,8 @@
 				7A449E237CAAB62758508C7C /* RecapStore.swift in Sources */,
 				967B525F7D3837F31D740D18 /* ResendPoller.swift in Sources */,
 				6FC65C190ED614C664C9BC17 /* SafeWebURL.swift in Sources */,
+				70F16E0B2B330BF9D5664A92 /* SchoolFullView.swift in Sources */,
+				EB63A4619F7BF998E3B0DC93 /* SchoolStore.swift in Sources */,
 				2A30FA2F046492E22A1C5719 /* ServiceDetail.swift in Sources */,
 				9F43BE6E77E371FCEB7FE8BA /* ServiceDetailRunner.swift in Sources */,
 				694AB4504CD65662E1681E5C /* ServicePublisher.swift in Sources */,
@@ -1554,6 +1564,8 @@
 				B69DE31E2B0C2E35594CAA87 /* RecapStore.swift in Sources */,
 				EB23ED9F1C12EA8B54A76A91 /* ResendPoller.swift in Sources */,
 				FEFEF1EBAB0E6CA74A33C10B /* SafeWebURL.swift in Sources */,
+				BF502138A7D7F042B5F92951 /* SchoolFullView.swift in Sources */,
+				0A5E291AE472E1EDF8CF3947 /* SchoolStore.swift in Sources */,
 				8C9AF392DAE8F2098A7BE7B6 /* ServiceDetail.swift in Sources */,
 				4755AAC633DCE5DAA6D54A3C /* ServiceDetailRunner.swift in Sources */,
 				D092D0D597D1CBCE6B775B5E /* ServicePublisher.swift in Sources */,
