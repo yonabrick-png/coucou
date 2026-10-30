@@ -54,6 +54,8 @@ final class SchoolStore: ObservableObject {
     @Published private(set) var syncing = false
     /// The last sync ended in an error (see ~/homework-tracker/logs).
     @Published private(set) var syncFailed = false
+    /// The sync can't start: ~/homework-tracker isn't trusted in Claude Code yet (one-time step).
+    @Published private(set) var needsSetup = false
     @Published private(set) var missing = false
 
     static let dashboardURL = URL(string: "https://claude.ai/artifact/Du2SJSRzpEwLVE13gLYYoS")!
@@ -121,6 +123,7 @@ final class SchoolStore: ObservableObject {
         let started = (j["started"] as? NSNumber).map { Date(timeIntervalSince1970: $0.doubleValue) }
         syncing = (j["state"] as? String) == "running" && (started.map { Date().timeIntervalSince($0) < 600 } ?? false)
         syncFailed = (j["state"] as? String) == "done" && (j["ok"] as? Bool) == false
+        needsSetup = syncFailed && (j["reason"] as? String) == "untrusted"
     }
 
     private func readPending() -> [String] {
@@ -177,6 +180,15 @@ final class SchoolStore: ObservableObject {
     }
 
     func openDashboard() { NSWorkspace.shared.open(Self.dashboardURL) }
+
+    /// The one-time trust step: copies the command and opens Terminal, where Yehonathan pastes it.
+    func startSetup() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("cd ~/homework-tracker && claude", forType: .string)
+        if let terminal = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal") {
+            NSWorkspace.shared.openApplication(at: terminal, configuration: NSWorkspace.OpenConfiguration())
+        }
+    }
 
     func open(_ test: Test) {
         if let url = URL(string: test.url), url.scheme == "https" { NSWorkspace.shared.open(url) }

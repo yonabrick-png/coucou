@@ -86,11 +86,24 @@ struct SchoolFullView: View {
                 .help(String(localized: "Training tonight, 17:00–20:00"))
             }
             Spacer(minLength: 4)
-            Text(store.syncing ? String(localized: "Syncing…")
-                 : store.syncFailed ? String(localized: "Sync failed") : updatedText)
-                .font(.system(size: 9))
-                .foregroundColor(store.syncFailed && !store.syncing ? Self.coral : Self.dim)
-                .help(store.syncFailed ? String(localized: "See ~/homework-tracker/logs. \(updatedText)") : "")
+            if store.needsSetup && !store.syncing {
+                // The sync can't start until ~/homework-tracker is trusted once in Claude Code
+                Button { store.startSetup() } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "exclamationmark.circle.fill").font(.system(size: 8.5))
+                        Text("Setup needed").font(.system(size: 9, weight: .semibold))
+                    }
+                    .foregroundColor(Self.coral)
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "One-time step: click to open Terminal with the command copied. Paste it, press Return, accept the trust prompt, then type /exit and press ↻. \(updatedText)"))
+            } else {
+                Text(store.syncing ? String(localized: "Syncing…")
+                     : store.syncFailed ? String(localized: "Sync failed") : updatedText)
+                    .font(.system(size: 9))
+                    .foregroundColor(store.syncFailed && !store.syncing ? Self.coral : Self.dim)
+                    .help(store.syncFailed ? String(localized: "See ~/homework-tracker/logs. \(updatedText)") : "")
+            }
             Button { store.sync(force: true) } label: {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 8, weight: .bold))
