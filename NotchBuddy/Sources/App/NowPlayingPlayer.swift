@@ -221,14 +221,61 @@ struct CompactTrailing: View {
                     CompactCalendarBadge(event: event)
                         .transition(.opacity.combined(with: .scale(scale: 0.8)))
                 } else {
-                    CompactMiniGrid(state: state)
-                        .transition(.opacity)
+                    restingSlot
                 }
             }
+        } else {
+            restingSlot
+        }
+    }
+
+    /// Nothing playing or coming up: the Claude plan ring (Settings → Agents → Claude plan in
+    /// the notch), else the mini grid of pills.
+    @ViewBuilder private var restingSlot: some View {
+        if state.showPlanInNotch && state.planRelayInstalled,
+           let usage = state.claudePlanUsage, ClaudePlanGauge.dominantPct(usage) != nil {
+            CompactPlanGauge(usage: usage)
+                .transition(.opacity.combined(with: .scale(scale: 0.8)))
         } else {
             CompactMiniGrid(state: state)
                 .transition(.opacity)
         }
+    }
+}
+
+/// The Claude plan in the closed notch: a small ring filled to the busier window (5 h or week),
+/// green under 50 %, amber under 80 %, red above. Hover for both windows and their resets.
+struct CompactPlanGauge: View {
+    let usage: PlanUsage
+
+    var body: some View {
+        let pct = ClaudePlanGauge.dominantPct(usage) ?? 0
+        let color = Color(hex: ClaudePlanGauge.color(for: pct))
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.12), lineWidth: 2.5)
+            Circle()
+                .trim(from: 0, to: CGFloat(min(100, pct)) / 100)
+                .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text("\(Int(pct.rounded()))")
+                .font(.system(size: 7.5, weight: .bold, design: .rounded).monospacedDigit())
+                .foregroundColor(.white)
+        }
+        .frame(width: 20, height: 20)
+        .frame(width: 32, height: 28)
+        .animation(.spring(response: 0.4, dampingFraction: 1), value: pct)
+        .help(Self.details(usage))
+    }
+
+    static func details(_ u: PlanUsage) -> String {
+        func line(_ name: String, _ w: PlanWindow?) -> String? {
+            guard let w else { return nil }
+            let pct = Int(ClaudePlanGauge.effectivePct(w).rounded())
+            let reset = w.resetsAt.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+            return "\(name): \(pct)% · resets \(reset)"
+        }
+        return (["Claude plan", line("5 hours", u.fiveHour), line("Week", u.sevenDay)].compactMap { $0 })
+            .joined(separator: "\n")
     }
 }
 

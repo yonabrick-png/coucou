@@ -413,6 +413,16 @@ final class AppState: ObservableObject {
 
     // Pending approval request from Claude Code hook
     @Published var pendingApproval: ApprovalInfo? = nil
+    #if !APPSTORE
+    /// A Claude session whose pill isn't on the home screen finished or needs input: the
+    /// finished card shows this session instead of the focused pill.
+    struct ClaudeAlert: Equatable {
+        let id: String
+        let needsInput: Bool
+        var text: String = ""
+    }
+    @Published var claudeAlert: ClaudeAlert? = nil
+    #endif
 
     // Pending AskUserQuestion from Claude Code hook
     @Published var pendingQuestion: AskQuestion? = nil {

@@ -753,21 +753,36 @@ private func openClaudeDesktopApp() {
 struct FinishedView: View {
     @ObservedObject var state: AppState
 
+    #if !APPSTORE
+    /// The Claude session the card is about: an alert's (its pill isn't on the home screen), else the focused pill.
+    private var alert: AppState.ClaudeAlert? { state.claudeAlert }
+    private var task: AgentTask? {
+        alert.flatMap { a in state.tasks.first { $0.id == a.id } } ?? state.focusTask
+    }
+    private var needsInput: Bool { alert?.needsInput == true }
+    #else
+    private var task: AgentTask? { state.focusTask }
+    private var needsInput: Bool { false }
+    #endif
+
     var body: some View {
         ZStack {
-            CardBackground(wash: .green)
+            CardBackground(wash: needsInput ? .amber : .green)
             VStack(alignment: .leading, spacing: 5) {
-                AgentWho(task: state.focusTask, label: "Claude Code finished")
+                AgentWho(task: task, label: needsInput ? "Claude Code needs you" : "Claude Code finished")
                 Text({
-                    if let fl = state.focusTask?.finalLine { return fl }
-                    if let s = state.focusTask?.steps.last(where: { !$0.isDiffStep }) { return s }
+                    #if !APPSTORE
+                    if needsInput, let text = alert?.text, !text.isEmpty { return text }
+                    #endif
+                    if let fl = task?.finalLine { return fl }
+                    if let s = task?.steps.last(where: { !$0.isDiffStep }) { return s }
                     return String(localized: "Session finished")
                 }())
                     .font(.system(size: 15, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 HStack(spacing: 8) {
-                    if state.focusTask?.id == "agent_claude-desktop" {
+                    if task?.id == "agent_claude-desktop" {
                         // Sessions from the Claude desktop app live there, not in a terminal.
                         PrimaryButton("Open Claude") {
                             openClaudeDesktopApp()
@@ -777,7 +792,7 @@ struct FinishedView: View {
                         #if !APPSTORE
                         PrimaryButton("Open terminal") {
                             // The app the session runs in (its terminal, or VS Code), then any known terminal
-                            let task = state.focusTask
+                            let task = self.task
                             if !(task?.id == "integration_claude" && ClaudeHost.activate(task?.hostApp)),
                                !TerminalTarget.activate(sessionBundleId: task?.sessionBundleId) {
                                 NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))

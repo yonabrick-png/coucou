@@ -601,6 +601,16 @@ final class HookServer: @unchecked Sendable {
                 state.updateTask(id: agentId, state: .question)
                 appendStep(id: agentId, step: message)
             }
+            #if !APPSTORE
+            // Idle ("waiting for your input") or a permission the approval card isn't already showing
+            if (lower.contains("waiting for your input") || lower.contains("needs your")),
+               state.pendingApproval == nil, pendingQuestionFD == -1,
+               popsHiddenClaudeAlert(agentId) {
+                state.claudeAlert = .init(id: agentId, needsInput: true, text: message)
+                SoundEngine.shared.play("approval")
+                expandIfNeeded(to: .finished)
+            }
+            #endif
 
         case "Stop":
             let scope = sessions.endTurn(pill: agentId, session: sessionId)
@@ -621,7 +631,20 @@ final class HookServer: @unchecked Sendable {
                 state.tasks[idx].finalLine = finalText
             }
             SoundEngine.shared.play("finish")
-            if focused {
+            #if !APPSTORE
+            let popsAlert = !focused && popsHiddenClaudeAlert(agentId)
+            #else
+            let popsAlert = false
+            #endif
+            if popsAlert {
+                #if !APPSTORE
+                state.claudeAlert = .init(id: agentId, needsInput: false)
+                #endif
+                expandIfNeeded(to: .finished)
+            } else if focused {
+                #if !APPSTORE
+                state.claudeAlert = nil
+                #endif
                 expandIfNeeded(to: .finished)
             } else {
                 setPillBadge(id: agentId, badge: .finished)
@@ -722,6 +745,21 @@ final class HookServer: @unchecked Sendable {
     }
 
     // MARK: - Helpers
+
+    #if !APPSTORE
+    /// Claude pills aren't on the home screen (NotchModes.homePills), so their "finished" and
+    /// "needs your input" alerts pop their own card — in Everything mode, and not while the
+    /// session's terminal is already in front (you're watching it).
+    @MainActor
+    private func popsHiddenClaudeAlert(_ agentId: String) -> Bool {
+        let modes = NotchModes.shared
+        guard modes.mode == .everything, !modes.allowsPill(agentId),
+              let task = AppState.shared.tasks.first(where: { $0.id == agentId }) else { return false }
+        if let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+           front == task.hostApp || front == task.sessionBundleId { return false }
+        return true
+    }
+    #endif
 
     @MainActor
     private func expandIfNeeded(to view: IslandView) {
